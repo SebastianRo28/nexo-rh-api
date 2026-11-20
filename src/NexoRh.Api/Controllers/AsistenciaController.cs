@@ -18,7 +18,7 @@ namespace NexoRh.Api.Controllers;
 [ApiController]
 [Route("api/asistencia")]
 [Authorize]
-public partial class AsistenciaController(NexoDbContext db, Auditoria auditoria, Alcance alcance, RelojAsistencia reloj) : ControllerBase
+public partial class AsistenciaController(NexoDbContext db, Auditoria auditoria, Alcance alcance, RelojAsistencia reloj, Configuraciones configuraciones) : ControllerBase
 {
     private static readonly string[] Metodos = ["Web", "App", "QR", "Foto"];
     private static readonly string[] TiposMarca = ["Entrada", "Salida"];
@@ -60,7 +60,12 @@ public partial class AsistenciaController(NexoDbContext db, Auditoria auditoria,
             (await db.SolicitudesAsistencia.AsNoTracking().OrderByDescending(x => x.Creada).ThenByDescending(x => x.Id).ToListAsync())
                 .Where(x => Ve(x.ColaboradorId)).Select(Mapeo.Solicitud).ToList(),
             (await db.Recargos.AsNoTracking().OrderByDescending(x => x.Fecha).ToListAsync()).Where(x => Ve(x.ColaboradorId)).Select(Mapeo.Recargo).ToList(),
-            (await db.AprobacionesHhee.AsNoTracking().ToListAsync()).Where(x => Ve(x.ColaboradorId)).Select(Mapeo.Aprobacion).ToList());
+            (await db.AprobacionesHhee.AsNoTracking().ToListAsync()).Where(x => Ve(x.ColaboradorId)).Select(Mapeo.Aprobacion).ToList(),
+            new Dictionary<string, Dictionary<string, object>>
+            {
+                ["ca-tolerancias"] = await configuraciones.LeerAsync("ca-tolerancias"),
+                ["ca-metodos"] = await configuraciones.LeerAsync("ca-metodos"),
+            });
     }
 
     // --- Marcas ----------------------------------------------------------------------------------------------------
@@ -79,6 +84,13 @@ public partial class AsistenciaController(NexoDbContext db, Auditoria auditoria,
 
         var hoy = reloj.Hoy;
         var hora = reloj.HoraReal;
+        // Método desactivado en Configuraciones › Métodos de marcación: queda como marca fallida.
+        if (!await configuraciones.InterruptorAsync("ca-metodos", metodo.ToLowerInvariant()))
+        {
+            db.MarcasFallidas.Add(new MarcaFallida { ColaboradorId = id, RecintoId = rc.Id, Fecha = hoy, Hora = hora, Tipo = p.Tipo!, Metodo = metodo, Motivo = "Método no permitido" });
+            await db.SaveChangesAsync();
+            return Error("metodo", $"La marcación por {(metodo == "Web" ? "portal web" : metodo)} está desactivada. Avisa a RR.HH.");
+        }
         var previas = await db.Marcas.Where(m => m.ColaboradorId == id && m.Fecha == hoy).ToListAsync();
         var ultima = previas.OrderBy(m => m.Hora).LastOrDefault();
         if (p.Tipo == "Salida" && (ultima is null || ultima.Tipo == "Salida")) return Error("tipo", "Primero registra tu entrada de hoy.");

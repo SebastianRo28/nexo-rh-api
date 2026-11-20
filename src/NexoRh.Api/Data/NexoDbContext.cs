@@ -11,6 +11,8 @@ public class NexoDbContext(DbContextOptions<NexoDbContext> options) : DbContext(
     public DbSet<Competencia> Competencias => Set<Competencia>();
     public DbSet<Usuario> Usuarios => Set<Usuario>();
     public DbSet<Cambio> Cambios => Set<Cambio>();
+    public DbSet<Perfil> Perfiles => Set<Perfil>();
+    public DbSet<Configuracion> Configuraciones => Set<Configuracion>();
 
     public DbSet<Recinto> Recintos => Set<Recinto>();
     public DbSet<Turno> Turnos => Set<Turno>();
@@ -94,6 +96,21 @@ public class NexoDbContext(DbContextOptions<NexoDbContext> options) : DbContext(
             e.Property(x => x.Anterior).HasMaxLength(500);
             e.Property(x => x.Actual).HasMaxLength(500);
             e.HasIndex(x => x.Fecha);
+        });
+        b.Entity<Perfil>(e =>
+        {
+            e.Property(x => x.Nombre).HasMaxLength(60).IsRequired();
+            e.HasIndex(x => x.Nombre).IsUnique();
+            e.Property(x => x.Rol).HasConversion<string>().HasMaxLength(20);
+            e.Property(x => x.Descripcion).HasMaxLength(300);
+            e.Property(x => x.ModificadoPor).HasMaxLength(120);
+        });
+        b.Entity<Usuario>().HasOne<Perfil>().WithMany().HasForeignKey(x => x.PerfilId).OnDelete(DeleteBehavior.Restrict);
+        b.Entity<Configuracion>(e =>
+        {
+            e.HasKey(x => x.Clave);
+            e.Property(x => x.Clave).HasMaxLength(40);
+            e.Property(x => x.ModificadoPor).HasMaxLength(120);
         });
         AsistenciaModelo(b);
     }

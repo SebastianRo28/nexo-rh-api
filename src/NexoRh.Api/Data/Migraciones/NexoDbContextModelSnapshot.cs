@@ -437,6 +437,29 @@ namespace NexoRh.Api.Data.Migraciones
                     b.ToTable("Competencias");
                 });
 
+            modelBuilder.Entity("NexoRh.Api.Domain.Configuracion", b =>
+                {
+                    b.Property<string>("Clave")
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<DateTime>("ActualizadoEn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ModificadoPor")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<string>("Valores")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Clave");
+
+                    b.ToTable("Configuraciones");
+                });
+
             modelBuilder.Entity("NexoRh.Api.Domain.FamiliaCargo", b =>
                 {
                     b.Property<int>("Id")
@@ -677,6 +700,51 @@ namespace NexoRh.Api.Data.Migraciones
                     b.HasIndex("ColaboradorId");
 
                     b.ToTable("NotasSupervisor");
+                });
+
+            modelBuilder.Entity("NexoRh.Api.Domain.Perfil", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("ActualizadoEn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("CreadoEn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Descripcion")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<string>("ModificadoPor")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("nvarchar(60)");
+
+                    b.Property<bool>("Predefinido")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Rol")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Nombre")
+                        .IsUnique();
+
+                    b.ToTable("Perfiles");
                 });
 
             modelBuilder.Entity("NexoRh.Api.Domain.RecargoDomingo", b =>
@@ -970,6 +1038,9 @@ namespace NexoRh.Api.Data.Migraciones
                         .HasMaxLength(60)
                         .HasColumnType("nvarchar(60)");
 
+                    b.Property<int?>("PerfilId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Rol")
                         .IsRequired()
                         .HasMaxLength(20)
@@ -991,6 +1062,8 @@ namespace NexoRh.Api.Data.Migraciones
 
                     b.HasIndex("Correo")
                         .IsUnique();
+
+                    b.HasIndex("PerfilId");
 
                     b.ToTable("Usuarios");
                 });
@@ -1196,6 +1269,11 @@ namespace NexoRh.Api.Data.Migraciones
                         .WithMany()
                         .HasForeignKey("ColaboradorId")
                         .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("NexoRh.Api.Domain.Perfil", null)
+                        .WithMany()
+                        .HasForeignKey("PerfilId")
+                        .OnDelete(DeleteBehavior.Restrict);
                 });
 
             modelBuilder.Entity("NexoRh.Api.Domain.Vacacion", b =>

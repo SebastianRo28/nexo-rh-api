@@ -8,9 +8,12 @@ public record LoginRespuesta(string Token, DateTime Expira, UsuarioSesion Usuari
 public record CambioPassword(string Actual, string Nueva);
 
 // Administración › Usuarios
-public record UsuarioDto(int Id, string Nombre, string Correo, string Rol, string Perfil, int? ColaboradorId, string? Colaborador,
+public record UsuarioDto(int Id, string Nombre, string Correo, string Rol, string Perfil, int? PerfilId, int? ColaboradorId, string? Colaborador,
     bool Activo, string UltimoAcceso, bool Bloqueado, bool DebeCambiarPassword);
-public record UsuarioGuardar(string Nombre, string Correo, string Rol, int? ColaboradorId);
+/// <summary>PerfilId define el rol (el del perfil); si no se envía, se usa el perfil predefinido del Rol.</summary>
+public record UsuarioGuardar(string Nombre, string Correo, string? Rol, int? ColaboradorId, int? PerfilId = null);
+public record PerfilDto(int Id, string Nombre, string Rol, bool Predefinido, string Descripcion, int Usuarios, string Creado, string Actualizado, string ModificadoPor);
+public record PerfilGuardar(string? Nombre, string? Rol, string? Descripcion);
 public record UsuarioCreado(UsuarioDto Usuario, string PasswordTemporal);
 public record EstadoUsuario(bool Activo);
 

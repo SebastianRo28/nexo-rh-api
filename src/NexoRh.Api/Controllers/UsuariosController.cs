@@ -35,7 +35,7 @@ public class UsuariosController(NexoDbContext db, Auditoria auditoria) : Control
         Passwords.Asignar(u, temporal, temporal: true);
         db.Usuarios.Add(u);
         await db.SaveChangesAsync();
-        auditoria.RegistrarTexto($"Usuario #{u.Id}", "Crear", u.Nombre, null, "usuario", null, $"{u.Correo} ({u.Rol})");
+        auditoria.RegistrarTexto($"Usuario #{u.Id}", "Crear", u.Nombre, null, "usuario", null, $"{u.Correo} ({u.Perfil})");
         await db.SaveChangesAsync();
         return CreatedAtAction(nameof(Listar), new UsuarioCreado(Dto(u, await NombresColaboradores()), temporal));
     }
@@ -45,7 +45,7 @@ public class UsuariosController(NexoDbContext db, Auditoria auditoria) : Control
     {
         var u = await db.Usuarios.FindAsync(id);
         if (u is null) return NotFound();
-        var antes = new { u.Nombre, u.Correo, u.Rol, u.ColaboradorId };
+        var antes = new { u.Nombre, u.Correo, u.Rol, u.ColaboradorId, u.Perfil };
         var error = await Aplicar(u, p);
         if (error is not null) return error;
         if (u.Rol != antes.Rol && u.Id == YoId()) return Problem("No puedes cambiar tu propio rol.", statusCode: 400);
@@ -57,6 +57,7 @@ public class UsuariosController(NexoDbContext db, Auditoria auditoria) : Control
         if (antes.Nombre != u.Nombre) auditoria.RegistrarTexto(entidad, "Modificar", u.Nombre, null, "nombre", antes.Nombre, u.Nombre);
         if (antes.Correo != u.Correo) auditoria.RegistrarTexto(entidad, "Modificar", u.Nombre, null, "correo", antes.Correo, u.Correo);
         if (antes.Rol != u.Rol) auditoria.RegistrarTexto(entidad, "Modificar", u.Nombre, null, "rol", antes.Rol.ToString(), u.Rol.ToString());
+        if (antes.Perfil != u.Perfil) auditoria.RegistrarTexto(entidad, "Modificar", u.Nombre, null, "perfil", antes.Perfil, u.Perfil);
         if (antes.ColaboradorId != u.ColaboradorId)
             auditoria.RegistrarTexto(entidad, "Modificar", u.Nombre, null, "colaborador_id", antes.ColaboradorId?.ToString(), u.ColaboradorId?.ToString());
         await db.SaveChangesAsync();
@@ -110,8 +111,18 @@ public class UsuariosController(NexoDbContext db, Auditoria auditoria) : Control
         else if (nombre.Length > 120) Error("nombre", "El nombre no puede superar 120 caracteres.");
         if (!EsCorreo(correo)) Error("correo", "Ingresa un correo válido.");
         else if (await db.Usuarios.AnyAsync(x => x.Correo == correo && x.Id != u.Id)) Error("correo", "Este correo ya está registrado.");
-        if (!Enum.TryParse<Rol>(p.Rol, true, out var rol) || !Enum.IsDefined(rol) || int.TryParse(p.Rol, out _))
+        // El rol viene del perfil; sin perfil, del rol indicado (con su perfil predefinido).
+        Perfil? perfil = null;
+        var rol = Rol.Colaborador;
+        if (p.PerfilId is int pid)
+        {
+            perfil = await db.Perfiles.FindAsync(pid);
+            if (perfil is null) Error("perfilId", "El perfil no existe.");
+            else rol = perfil.Rol;
+        }
+        else if (!Enum.TryParse(p.Rol, true, out rol) || !Enum.IsDefined(rol) || int.TryParse(p.Rol, out _))
             Error("rol", "El rol debe ser Administrador, Supervisor o Colaborador.");
+        else perfil = await db.Perfiles.Where(x => x.Rol == rol && x.Predefinido).OrderBy(x => x.Id).FirstOrDefaultAsync();
         if (p.ColaboradorId is int cid)
         {
             if (!await db.Colaboradores.AnyAsync(c => c.Id == cid)) Error("colaboradorId", "El colaborador no existe.");
@@ -123,7 +134,8 @@ public class UsuariosController(NexoDbContext db, Auditoria auditoria) : Control
         u.Nombre = nombre;
         u.Correo = correo;
         u.Rol = rol;
-        u.Perfil = Passwords.PerfilDe(rol);
+        u.PerfilId = perfil?.Id;
+        u.Perfil = perfil?.Nombre ?? Passwords.PerfilDe(rol);
         u.ColaboradorId = p.ColaboradorId;
         return null;
     }
@@ -139,7 +151,7 @@ public class UsuariosController(NexoDbContext db, Auditoria auditoria) : Control
         db.Colaboradores.AsNoTracking().ToDictionaryAsync(c => c.Id, c => c.Apellidos + ", " + c.Nombres);
 
     private static UsuarioDto Dto(Usuario u, Dictionary<int, string> nombres) => new(
-        u.Id, u.Nombre, u.Correo, u.Rol.ToString(), u.Perfil, u.ColaboradorId,
+        u.Id, u.Nombre, u.Correo, u.Rol.ToString(), u.Perfil, u.PerfilId, u.ColaboradorId,
         u.ColaboradorId is int c && nombres.TryGetValue(c, out var n) ? n : null,
         u.Activo, u.UltimoAcceso is { } a ? Fechas.TextoHora(a) : "—", u.BloqueadoHasta > DateTime.UtcNow, u.DebeCambiarPassword);
 }

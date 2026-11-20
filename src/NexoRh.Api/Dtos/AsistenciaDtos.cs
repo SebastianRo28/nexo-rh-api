@@ -34,7 +34,8 @@ public record AsistenciaDatos(
     List<FeriadoDto> Feriados, List<RecintoDto> Recintos, List<TurnoDto> Turnos, List<PerfilAsistenciaDto> Perfiles,
     List<AsignacionTurnoDto> Asignaciones, List<CambioTurnoDto> CambiosTurno, List<MarcaDto> Marcas, List<MarcaFallidaDto> Fallidas,
     List<NotaDto> Notas, List<VacacionDto> Vacaciones, List<AusenciaDto> Ausencias, List<LicenciaDto> Licencias,
-    List<SolicitudAsistenciaDto> Solicitudes, List<RecargoDto> Recargos, List<AprobacionHheeDto> Aprobaciones);
+    List<SolicitudAsistenciaDto> Solicitudes, List<RecargoDto> Recargos, List<AprobacionHheeDto> Aprobaciones,
+    Dictionary<string, Dictionary<string, object>> Configuracion);
 
 // --- Entradas ---------------------------------------------------------------------------------------------------------
 public record Marcar(string? Tipo, string? Metodo, int? RecintoId);

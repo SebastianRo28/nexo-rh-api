@@ -67,6 +67,7 @@ builder.Services.AddCors(o => o.AddDefaultPolicy(p => p.WithOrigins(origenes).Al
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<Auditoria>();
 builder.Services.AddScoped<Alcance>();
+builder.Services.AddScoped<Configuraciones>();
 builder.Services.Configure<RelojAsistencia.Opciones>(config.GetSection("Asistencia"));
 builder.Services.AddSingleton<RelojAsistencia>();
 builder.Services.AddProblemDetails();

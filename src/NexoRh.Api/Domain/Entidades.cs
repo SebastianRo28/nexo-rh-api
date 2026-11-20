@@ -91,8 +91,10 @@ public class Usuario
     public string Correo { get; set; } = "";
     public string PasswordHash { get; set; } = "";
     public Rol Rol { get; set; }
-    /// <summary>Perfil mostrado en Administración › Usuarios (p. ej. "Prevencionista de Riesgos").</summary>
+    /// <summary>Nombre del perfil (copia de Perfil.Nombre para mostrarlo; se actualiza al renombrar el perfil).</summary>
     public string Perfil { get; set; } = "";
+    /// <summary>Perfil asignado; su rol base es el rol del usuario.</summary>
+    public int? PerfilId { get; set; }
     public int? ColaboradorId { get; set; }
     public bool Activo { get; set; } = true;
     public DateTime? UltimoAcceso { get; set; }
@@ -102,6 +104,31 @@ public class Usuario
     public bool DebeCambiarPassword { get; set; }
     /// <summary>Cambia al desactivar, restablecer o cambiar la contraseña o el rol: invalida los tokens emitidos antes.</summary>
     public string Sello { get; set; } = Guid.NewGuid().ToString("N");
+}
+
+/// <summary>
+/// Perfil de usuario (Administración › Perfiles). El rol base define qué puede ver y hacer en Nexo RH; el perfil le da un
+/// nombre propio (p. ej. "Jefe Selección" con rol Supervisor). Los predefinidos corresponden a cada rol y no se borran.
+/// </summary>
+public class Perfil
+{
+    public int Id { get; set; }
+    public string Nombre { get; set; } = "";
+    public Rol Rol { get; set; }
+    public bool Predefinido { get; set; }
+    public string Descripcion { get; set; } = "";
+    public DateTime CreadoEn { get; set; } = DateTime.UtcNow;
+    public DateTime ActualizadoEn { get; set; } = DateTime.UtcNow;
+    public string ModificadoPor { get; set; } = "";
+}
+
+/// <summary>Configuración de un módulo (p. ej. "ca-metodos"), guardada como JSON.</summary>
+public class Configuracion
+{
+    public string Clave { get; set; } = "";
+    public string Valores { get; set; } = "{}";
+    public DateTime ActualizadoEn { get; set; } = DateTime.UtcNow;
+    public string ModificadoPor { get; set; } = "";
 }
 
 /// <summary>Registro de auditoría ("Historial de cambios").</summary>
