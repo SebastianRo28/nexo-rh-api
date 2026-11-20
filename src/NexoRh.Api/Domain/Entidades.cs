@@ -42,6 +42,16 @@ public class Colaborador
     public string? Sindicalizado { get; set; }
     public string? Aviso { get; set; }
 
+    // Asistencia.
+    /// <summary>Recinto principal (lugar de trabajo).</summary>
+    public int? RecintoId { get; set; }
+    /// <summary>Puede marcar desde la app móvil.</summary>
+    public bool UsaApp { get; set; }
+    /// <summary>Jornal diario si se le paga por día; null = mensual.</summary>
+    public decimal? Jornal { get; set; }
+    /// <summary>Saldo de vacaciones importado al inicio del control (días).</summary>
+    public decimal SaldoVacacionesInicial { get; set; }
+
     public DateTime CreadoEn { get; set; } = DateTime.UtcNow;
     public DateTime ActualizadoEn { get; set; } = DateTime.UtcNow;
 }

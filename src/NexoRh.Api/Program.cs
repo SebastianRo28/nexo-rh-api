@@ -66,6 +66,9 @@ var origenes = config.GetSection("Cors:Origenes").Get<string[]>() ?? ["http://lo
 builder.Services.AddCors(o => o.AddDefaultPolicy(p => p.WithOrigins(origenes).AllowAnyHeader().AllowAnyMethod()));
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<Auditoria>();
+builder.Services.AddScoped<Alcance>();
+builder.Services.Configure<RelojAsistencia.Opciones>(config.GetSection("Asistencia"));
+builder.Services.AddSingleton<RelojAsistencia>();
 builder.Services.AddProblemDetails();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();

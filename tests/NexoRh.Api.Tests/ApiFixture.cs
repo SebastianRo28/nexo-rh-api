@@ -29,6 +29,9 @@ public class ApiFixture : WebApplicationFactory<Program>
         Environment.SetEnvironmentVariable("Semilla__PasswordInicial", PasswordSemilla);
         Environment.SetEnvironmentVariable("BaseDatos__MigrarAlIniciar", "true");
         Environment.SetEnvironmentVariable("Seguridad__LoginPorMinuto", "1000");
+        // Los datos de ejemplo de asistencia son de marzo de 2026.
+        Environment.SetEnvironmentVariable("Asistencia__FechaCorte", "16/03/2026");
+        Environment.SetEnvironmentVariable("Asistencia__HoraCorte", "11:45");
     }
 
     protected override void ConfigureWebHost(IWebHostBuilder builder) => builder.UseEnvironment("Pruebas");

@@ -12,6 +12,21 @@ public class NexoDbContext(DbContextOptions<NexoDbContext> options) : DbContext(
     public DbSet<Usuario> Usuarios => Set<Usuario>();
     public DbSet<Cambio> Cambios => Set<Cambio>();
 
+    public DbSet<Recinto> Recintos => Set<Recinto>();
+    public DbSet<Turno> Turnos => Set<Turno>();
+    public DbSet<AsignacionTurno> AsignacionesTurno => Set<AsignacionTurno>();
+    public DbSet<CambioTurno> CambiosTurno => Set<CambioTurno>();
+    public DbSet<Marca> Marcas => Set<Marca>();
+    public DbSet<MarcaFallida> MarcasFallidas => Set<MarcaFallida>();
+    public DbSet<NotaSupervisor> NotasSupervisor => Set<NotaSupervisor>();
+    public DbSet<Vacacion> Vacaciones => Set<Vacacion>();
+    public DbSet<Ausencia> Ausencias => Set<Ausencia>();
+    public DbSet<LicenciaMedica> Licencias => Set<LicenciaMedica>();
+    public DbSet<SolicitudAsistencia> SolicitudesAsistencia => Set<SolicitudAsistencia>();
+    public DbSet<RecargoDomingo> Recargos => Set<RecargoDomingo>();
+    public DbSet<AprobacionHhee> AprobacionesHhee => Set<AprobacionHhee>();
+    public DbSet<Feriado> Feriados => Set<Feriado>();
+
     protected override void OnModelCreating(ModelBuilder b)
     {
         b.Entity<Colaborador>(e =>
@@ -79,6 +94,140 @@ public class NexoDbContext(DbContextOptions<NexoDbContext> options) : DbContext(
             e.Property(x => x.Anterior).HasMaxLength(500);
             e.Property(x => x.Actual).HasMaxLength(500);
             e.HasIndex(x => x.Fecha);
+        });
+        AsistenciaModelo(b);
+    }
+
+    private static void AsistenciaModelo(ModelBuilder b)
+    {
+        b.Entity<Colaborador>(e =>
+        {
+            e.Property(x => x.Jornal).HasPrecision(10, 2);
+            e.Property(x => x.SaldoVacacionesInicial).HasPrecision(6, 2);
+            e.HasOne<Recinto>().WithMany().HasForeignKey(x => x.RecintoId).OnDelete(DeleteBehavior.Restrict);
+        });
+        b.Entity<Recinto>(e =>
+        {
+            e.Property(x => x.Id).ValueGeneratedNever();
+            e.Property(x => x.Nombre).HasMaxLength(80).IsRequired();
+            e.HasIndex(x => x.Nombre).IsUnique();
+            e.Property(x => x.Empresa).HasMaxLength(120);
+            e.Property(x => x.Ruc).HasMaxLength(11);
+            e.Property(x => x.CodigoInterno).HasMaxLength(20);
+            e.Property(x => x.Pais).HasMaxLength(40);
+            e.Property(x => x.Departamento).HasMaxLength(40);
+            e.Property(x => x.Provincia).HasMaxLength(40);
+            e.Property(x => x.Distrito).HasMaxLength(60);
+            e.Property(x => x.Direccion).HasMaxLength(200);
+            e.Property(x => x.Clave).HasMaxLength(20);
+            e.Property(x => x.Info).HasMaxLength(500);
+        });
+        b.Entity<Turno>(e =>
+        {
+            e.Property(x => x.Id).ValueGeneratedNever();
+            e.Property(x => x.Nombre).HasMaxLength(60).IsRequired();
+            e.Property(x => x.Sigla).HasMaxLength(5).IsRequired();
+            e.HasIndex(x => x.Sigla).IsUnique();
+            e.Property(x => x.Tipo).HasMaxLength(15);
+            e.Property(x => x.Jornada).HasMaxLength(10);
+            e.Property(x => x.Entrada).HasMaxLength(5);
+            e.Property(x => x.Salida).HasMaxLength(5);
+            e.Property(x => x.Color).HasMaxLength(9);
+        });
+        b.Entity<AsignacionTurno>(e =>
+        {
+            e.Property(x => x.CreadoPor).HasMaxLength(120);
+            e.HasIndex(x => x.ColaboradorId);
+            e.HasOne<Colaborador>().WithMany().HasForeignKey(x => x.ColaboradorId).OnDelete(DeleteBehavior.Cascade);
+            e.HasOne<Turno>().WithMany().HasForeignKey(x => x.TurnoId).OnDelete(DeleteBehavior.Restrict);
+        });
+        b.Entity<CambioTurno>(e =>
+        {
+            e.Property(x => x.Codigo).HasMaxLength(5);
+            e.Property(x => x.CreadoPor).HasMaxLength(120);
+            e.HasIndex(x => new { x.ColaboradorId, x.Fecha }).IsUnique();
+            e.HasOne<Colaborador>().WithMany().HasForeignKey(x => x.ColaboradorId).OnDelete(DeleteBehavior.Cascade);
+            e.HasOne<Turno>().WithMany().HasForeignKey(x => x.TurnoId).OnDelete(DeleteBehavior.Restrict);
+        });
+        b.Entity<Marca>(e =>
+        {
+            e.Property(x => x.Hora).HasMaxLength(5);
+            e.Property(x => x.Tipo).HasMaxLength(10);
+            e.Property(x => x.Metodo).HasMaxLength(10);
+            e.Property(x => x.Observacion).HasMaxLength(300);
+            e.Property(x => x.CreadoPor).HasMaxLength(120);
+            e.Property(x => x.Motivo).HasMaxLength(300);
+            e.HasIndex(x => new { x.ColaboradorId, x.Fecha });
+            e.HasIndex(x => x.Fecha);
+            e.HasOne<Colaborador>().WithMany().HasForeignKey(x => x.ColaboradorId).OnDelete(DeleteBehavior.Cascade);
+            e.HasOne<Recinto>().WithMany().HasForeignKey(x => x.RecintoId).OnDelete(DeleteBehavior.Restrict);
+        });
+        b.Entity<MarcaFallida>(e =>
+        {
+            e.Property(x => x.Hora).HasMaxLength(5);
+            e.Property(x => x.Tipo).HasMaxLength(10);
+            e.Property(x => x.Metodo).HasMaxLength(10);
+            e.Property(x => x.Motivo).HasMaxLength(40);
+            e.HasOne<Colaborador>().WithMany().HasForeignKey(x => x.ColaboradorId).OnDelete(DeleteBehavior.Cascade);
+            e.HasOne<Recinto>().WithMany().HasForeignKey(x => x.RecintoId).OnDelete(DeleteBehavior.Restrict);
+        });
+        b.Entity<NotaSupervisor>(e =>
+        {
+            e.Property(x => x.Texto).HasMaxLength(1000);
+            e.Property(x => x.Autor).HasMaxLength(170);
+            e.HasOne<Colaborador>().WithMany().HasForeignKey(x => x.ColaboradorId).OnDelete(DeleteBehavior.Cascade);
+        });
+        b.Entity<Vacacion>(e =>
+        {
+            e.Property(x => x.Origen).HasMaxLength(20);
+            e.Property(x => x.Observacion).HasMaxLength(300);
+            e.HasIndex(x => x.ColaboradorId);
+            e.HasOne<Colaborador>().WithMany().HasForeignKey(x => x.ColaboradorId).OnDelete(DeleteBehavior.Cascade);
+        });
+        b.Entity<Ausencia>(e =>
+        {
+            e.Property(x => x.Tipo).HasMaxLength(40);
+            e.Property(x => x.Observacion).HasMaxLength(300);
+            e.HasIndex(x => x.ColaboradorId);
+            e.HasOne<Colaborador>().WithMany().HasForeignKey(x => x.ColaboradorId).OnDelete(DeleteBehavior.Cascade);
+        });
+        b.Entity<LicenciaMedica>(e =>
+        {
+            e.Property(x => x.Folio).HasMaxLength(30);
+            e.Property(x => x.Emisor).HasMaxLength(120);
+            e.Property(x => x.Diagnostico).HasMaxLength(200);
+            e.Property(x => x.Estado).HasMaxLength(12);
+            e.HasOne<Colaborador>().WithMany().HasForeignKey(x => x.ColaboradorId).OnDelete(DeleteBehavior.Cascade);
+            e.HasOne<Ausencia>().WithMany().HasForeignKey(x => x.AusenciaId).OnDelete(DeleteBehavior.NoAction);
+        });
+        b.Entity<SolicitudAsistencia>(e =>
+        {
+            e.Property(x => x.Tipo).HasMaxLength(20);
+            e.Property(x => x.Motivo).HasMaxLength(300);
+            e.Property(x => x.Estado).HasMaxLength(12);
+            e.Property(x => x.Aprobador).HasMaxLength(120);
+            e.Property(x => x.Comentario).HasMaxLength(300);
+            e.HasOne<Colaborador>().WithMany().HasForeignKey(x => x.ColaboradorId).OnDelete(DeleteBehavior.Cascade);
+        });
+        b.Entity<RecargoDomingo>(e =>
+        {
+            e.Property(x => x.Horas).HasPrecision(5, 2);
+            e.Property(x => x.Observacion).HasMaxLength(300);
+            e.HasOne<Colaborador>().WithMany().HasForeignKey(x => x.ColaboradorId).OnDelete(DeleteBehavior.Cascade);
+        });
+        b.Entity<AprobacionHhee>(e =>
+        {
+            e.Property(x => x.Estado).HasMaxLength(20);
+            e.Property(x => x.Observacion).HasMaxLength(300);
+            e.Property(x => x.AprobadoPor).HasMaxLength(120);
+            e.HasIndex(x => new { x.ColaboradorId, x.Fecha }).IsUnique();
+            e.OwnsMany(x => x.Lineas, l => l.ToJson());
+            e.HasOne<Colaborador>().WithMany().HasForeignKey(x => x.ColaboradorId).OnDelete(DeleteBehavior.Cascade);
+        });
+        b.Entity<Feriado>(e =>
+        {
+            e.HasKey(x => x.Fecha);
+            e.Property(x => x.Nombre).HasMaxLength(80);
         });
     }
 }

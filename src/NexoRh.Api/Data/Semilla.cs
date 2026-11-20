@@ -33,6 +33,7 @@ public static class Semilla
         if (!await db.Colaboradores.AnyAsync()) db.Colaboradores.AddRange(Colaboradores());
         if (!await db.Cambios.AnyAsync()) db.Cambios.AddRange(Cambios());
         await db.SaveChangesAsync();
+        await SemillaAsistencia.CargarAsync(db);
 
         if (!await db.Usuarios.AnyAsync())
         {

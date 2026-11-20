@@ -76,25 +76,7 @@ public partial class ColaboradoresController(NexoDbContext db, Auditoria auditor
 
     // --- Permisos -------------------------------------------------------------------------------------------------
     /// <summary>Ids cuyos datos completos puede ver el usuario actual.</summary>
-    private HashSet<int> Alcance(List<Colaborador> todos)
-    {
-        if (User.Rol() == Rol.Administrador) return todos.Select(c => c.Id).ToHashSet();
-        var propio = User.ColaboradorId();
-        var set = new HashSet<int>();
-        if (propio is null) return set;
-        set.Add(propio.Value);
-        if (User.Rol() == Rol.Supervisor)
-        {
-            // Todo el equipo que depende de él, directa o indirectamente.
-            var cola = new Queue<int>([propio.Value]);
-            while (cola.Count > 0)
-            {
-                var jefe = cola.Dequeue();
-                foreach (var h in todos.Where(x => x.JefeId == jefe && set.Add(x.Id))) cola.Enqueue(h.Id);
-            }
-        }
-        return set;
-    }
+    private HashSet<int> Alcance(List<Colaborador> todos) => Services.Alcance.Calcular(User, todos.Select(c => (c.Id, c.JefeId)));
 
     private static ColaboradorDto ADto(Colaborador c, List<Colaborador> todos, bool completo)
     {
