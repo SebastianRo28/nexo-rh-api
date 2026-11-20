@@ -1,0 +1,2083 @@
+{
+  "generado": "tools/exportar-genericos.js desde retail-web/src/app/core (catalogos-config.ts y config-forms.ts)",
+  "catalogos": [
+    {
+      "clave": "grupos",
+      "singular": "Grupo",
+      "campos": [
+        {
+          "key": "nombre",
+          "label": "Nombre",
+          "tipo": "texto",
+          "opciones": null,
+          "obligatorio": true,
+          "requeridoSi": null,
+          "unico": true,
+          "patron": null,
+          "min": null,
+          "max": null
+        },
+        {
+          "key": "tipo",
+          "label": "Tipo",
+          "tipo": "select",
+          "opciones": [
+            "Manual",
+            "Por área",
+            "Por cargo"
+          ],
+          "obligatorio": true,
+          "requeridoSi": null,
+          "unico": false,
+          "patron": null,
+          "min": null,
+          "max": null
+        },
+        {
+          "key": "area",
+          "label": "Área",
+          "tipo": "select",
+          "opciones": "areas",
+          "obligatorio": false,
+          "requeridoSi": {
+            "campo": "tipo",
+            "valor": "Por área"
+          },
+          "unico": false,
+          "patron": null,
+          "min": null,
+          "max": null
+        },
+        {
+          "key": "cargo",
+          "label": "Cargo",
+          "tipo": "select",
+          "opciones": "cargos",
+          "obligatorio": false,
+          "requeridoSi": {
+            "campo": "tipo",
+            "valor": "Por cargo"
+          },
+          "unico": false,
+          "patron": null,
+          "min": null,
+          "max": null
+        },
+        {
+          "key": "descripcion",
+          "label": "Descripción",
+          "tipo": "textarea",
+          "opciones": null,
+          "obligatorio": false,
+          "requeridoSi": null,
+          "unico": false,
+          "patron": null,
+          "min": null,
+          "max": null
+        },
+        {
+          "key": "activo",
+          "label": "Estado",
+          "tipo": "switch",
+          "opciones": null,
+          "obligatorio": false,
+          "requeridoSi": null,
+          "unico": false,
+          "patron": null,
+          "min": null,
+          "max": null
+        }
+      ],
+      "filas": [
+        {
+          "nombre": "Brigada de emergencia",
+          "tipo": "Manual",
+          "area": "",
+          "cargo": "",
+          "descripcion": "Brigadistas de evacuación y primeros auxilios.",
+          "activo": true
+        },
+        {
+          "nombre": "Equipo de almacén",
+          "tipo": "Por área",
+          "area": "Logística",
+          "cargo": "",
+          "descripcion": "",
+          "activo": true
+        },
+        {
+          "nombre": "Fuerza de ventas",
+          "tipo": "Por área",
+          "area": "Ventas",
+          "cargo": "",
+          "descripcion": "",
+          "activo": true
+        },
+        {
+          "nombre": "Practicantes",
+          "tipo": "Por cargo",
+          "area": "",
+          "cargo": "Practicante Profesional",
+          "descripcion": "Seguimiento de convenios de prácticas.",
+          "activo": true
+        }
+      ],
+      "referenciadoPor": []
+    },
+    {
+      "clave": "puestos",
+      "singular": "Puesto",
+      "campos": [
+        {
+          "key": "codigo",
+          "label": "Código",
+          "tipo": "texto",
+          "opciones": null,
+          "obligatorio": true,
+          "requeridoSi": null,
+          "unico": true,
+          "patron": {
+            "re": "^[A-Z]{2,4}-\\d{2,4}$",
+            "msg": "Usa el formato ABC-001."
+          },
+          "min": null,
+          "max": null
+        },
+        {
+          "key": "cargo",
+          "label": "Cargo",
+          "tipo": "select",
+          "opciones": "cargos",
+          "obligatorio": true,
+          "requeridoSi": null,
+          "unico": false,
+          "patron": null,
+          "min": null,
+          "max": null
+        },
+        {
+          "key": "area",
+          "label": "Área",
+          "tipo": "select",
+          "opciones": "areas",
+          "obligatorio": true,
+          "requeridoSi": null,
+          "unico": false,
+          "patron": null,
+          "min": null,
+          "max": null
+        },
+        {
+          "key": "centro",
+          "label": "Centro de costo",
+          "tipo": "select",
+          "opciones": "catalogo:centros-de-costo",
+          "obligatorio": false,
+          "requeridoSi": null,
+          "unico": false,
+          "patron": null,
+          "min": null,
+          "max": null
+        },
+        {
+          "key": "estado",
+          "label": "Estado",
+          "tipo": "select",
+          "opciones": [
+            "Ocupado",
+            "Vacante",
+            "Congelado"
+          ],
+          "obligatorio": true,
+          "requeridoSi": null,
+          "unico": false,
+          "patron": null,
+          "min": null,
+          "max": null
+        },
+        {
+          "key": "ocupante",
+          "label": "Ocupante",
+          "tipo": "select",
+          "opciones": "colaboradores",
+          "obligatorio": false,
+          "requeridoSi": {
+            "campo": "estado",
+            "valor": "Ocupado"
+          },
+          "unico": false,
+          "patron": null,
+          "min": null,
+          "max": null
+        }
+      ],
+      "filas": [
+        {
+          "codigo": "FIN-001",
+          "cargo": "Jefe de Finanzas",
+          "area": "Finanzas",
+          "centro": "CC-110 · Finanzas",
+          "estado": "Ocupado",
+          "ocupante": "Navarro Ríos, Gonzalo"
+        },
+        {
+          "codigo": "FIN-002",
+          "cargo": "Analista Finanzas",
+          "area": "Finanzas",
+          "centro": "CC-110 · Finanzas",
+          "estado": "Ocupado",
+          "ocupante": "Alamos Ruiz, Florencia"
+        },
+        {
+          "codigo": "FIN-003",
+          "cargo": "Analista Finanzas",
+          "area": "Finanzas",
+          "centro": "CC-110 · Finanzas",
+          "estado": "Vacante",
+          "ocupante": ""
+        },
+        {
+          "codigo": "LOG-001",
+          "cargo": "Jefe de Operaciones",
+          "area": "Logística",
+          "centro": "CC-200 · Operaciones y almacén",
+          "estado": "Ocupado",
+          "ocupante": "Benavides Rojas, Diego"
+        },
+        {
+          "codigo": "LOG-002",
+          "cargo": "Asistente de Almacén",
+          "area": "Logística",
+          "centro": "CC-200 · Operaciones y almacén",
+          "estado": "Ocupado",
+          "ocupante": "Gutiérrez Paredes, Javier"
+        },
+        {
+          "codigo": "VTA-004",
+          "cargo": "Ejecutiva Comercial",
+          "area": "Ventas",
+          "centro": "CC-300 · Comercial",
+          "estado": "Congelado",
+          "ocupante": ""
+        }
+      ],
+      "referenciadoPor": []
+    },
+    {
+      "clave": "anotaciones",
+      "singular": "Anotación",
+      "campos": [
+        {
+          "key": "colaborador",
+          "label": "Colaborador",
+          "tipo": "select",
+          "opciones": "colaboradores",
+          "obligatorio": true,
+          "requeridoSi": null,
+          "unico": false,
+          "patron": null,
+          "min": null,
+          "max": null
+        },
+        {
+          "key": "tipo",
+          "label": "Tipo",
+          "tipo": "select",
+          "opciones": [
+            "Felicitación",
+            "Observación",
+            "Amonestación verbal",
+            "Amonestación escrita"
+          ],
+          "obligatorio": true,
+          "requeridoSi": null,
+          "unico": false,
+          "patron": null,
+          "min": null,
+          "max": null
+        },
+        {
+          "key": "fecha",
+          "label": "Fecha",
+          "tipo": "fecha",
+          "opciones": null,
+          "obligatorio": true,
+          "requeridoSi": null,
+          "unico": false,
+          "patron": null,
+          "min": null,
+          "max": null
+        },
+        {
+          "key": "detalle",
+          "label": "Detalle",
+          "tipo": "textarea",
+          "opciones": null,
+          "obligatorio": true,
+          "requeridoSi": null,
+          "unico": false,
+          "patron": null,
+          "min": null,
+          "max": null
+        },
+        {
+          "key": "visible",
+          "label": "Visible para el colaborador",
+          "tipo": "switch",
+          "opciones": null,
+          "obligatorio": false,
+          "requeridoSi": null,
+          "unico": false,
+          "patron": null,
+          "min": null,
+          "max": null
+        }
+      ],
+      "filas": [
+        {
+          "colaborador": "Gutiérrez Paredes, Javier",
+          "tipo": "Felicitación",
+          "fecha": "06/03/2026",
+          "detalle": "Inventario sin diferencias por tercer mes consecutivo.",
+          "visible": true
+        },
+        {
+          "colaborador": "Gutiérrez Paredes, Javier",
+          "tipo": "Observación",
+          "fecha": "09/03/2026",
+          "detalle": "Inasistencia sin aviso al turno de mañana.",
+          "visible": false
+        },
+        {
+          "colaborador": "Medina Torres, Sofía",
+          "tipo": "Felicitación",
+          "fecha": "27/02/2026",
+          "detalle": "Campaña digital de verano superó la meta de leads.",
+          "visible": true
+        }
+      ],
+      "referenciadoPor": []
+    },
+    {
+      "clave": "atributos",
+      "singular": "Atributo",
+      "campos": [
+        {
+          "key": "nombre",
+          "label": "Nombre",
+          "tipo": "texto",
+          "opciones": null,
+          "obligatorio": true,
+          "requeridoSi": null,
+          "unico": true,
+          "patron": null,
+          "min": null,
+          "max": null
+        },
+        {
+          "key": "entidad",
+          "label": "Se aplica a",
+          "tipo": "select",
+          "opciones": [
+            "Colaborador",
+            "Cargo",
+            "Área"
+          ],
+          "obligatorio": true,
+          "requeridoSi": null,
+          "unico": false,
+          "patron": null,
+          "min": null,
+          "max": null
+        },
+        {
+          "key": "tipoDato",
+          "label": "Tipo de dato",
+          "tipo": "select",
+          "opciones": [
+            "Texto",
+            "Número",
+            "Fecha",
+            "Lista"
+          ],
+          "obligatorio": true,
+          "requeridoSi": null,
+          "unico": false,
+          "patron": null,
+          "min": null,
+          "max": null
+        },
+        {
+          "key": "opciones",
+          "label": "Opciones de la lista",
+          "tipo": "texto",
+          "opciones": null,
+          "obligatorio": false,
+          "requeridoSi": {
+            "campo": "tipoDato",
+            "valor": "Lista"
+          },
+          "unico": false,
+          "patron": null,
+          "min": null,
+          "max": null
+        },
+        {
+          "key": "obligatorio",
+          "label": "Obligatorio",
+          "tipo": "switch",
+          "opciones": null,
+          "obligatorio": false,
+          "requeridoSi": null,
+          "unico": false,
+          "patron": null,
+          "min": null,
+          "max": null
+        }
+      ],
+      "filas": [
+        {
+          "nombre": "Talla de uniforme",
+          "entidad": "Colaborador",
+          "tipoDato": "Lista",
+          "opciones": "S, M, L, XL",
+          "obligatorio": false
+        },
+        {
+          "nombre": "Contacto de emergencia",
+          "entidad": "Colaborador",
+          "tipoDato": "Texto",
+          "opciones": "",
+          "obligatorio": true
+        },
+        {
+          "nombre": "Requiere licencia de conducir",
+          "entidad": "Cargo",
+          "tipoDato": "Lista",
+          "opciones": "Sí, No",
+          "obligatorio": false
+        }
+      ],
+      "referenciadoPor": []
+    },
+    {
+      "clave": "recordatorios",
+      "singular": "Recordatorio",
+      "campos": [
+        {
+          "key": "nombre",
+          "label": "Nombre",
+          "tipo": "texto",
+          "opciones": null,
+          "obligatorio": true,
+          "requeridoSi": null,
+          "unico": true,
+          "patron": null,
+          "min": null,
+          "max": null
+        },
+        {
+          "key": "evento",
+          "label": "Evento",
+          "tipo": "select",
+          "opciones": [
+            "Cumpleaños",
+            "Aniversario laboral",
+            "Fin de contrato",
+            "Fin de período de prueba",
+            "Vencimiento de examen médico",
+            "Vencimiento de documento"
+          ],
+          "obligatorio": true,
+          "requeridoSi": null,
+          "unico": false,
+          "patron": null,
+          "min": null,
+          "max": null
+        },
+        {
+          "key": "anticipacion",
+          "label": "Días de anticipación",
+          "tipo": "numero",
+          "opciones": null,
+          "obligatorio": true,
+          "requeridoSi": null,
+          "unico": false,
+          "patron": null,
+          "min": 0,
+          "max": 90
+        },
+        {
+          "key": "destinatario",
+          "label": "Avisar a",
+          "tipo": "select",
+          "opciones": [
+            "Recursos Humanos",
+            "Jefatura directa",
+            "Colaborador",
+            "RR.HH. y jefatura"
+          ],
+          "obligatorio": true,
+          "requeridoSi": null,
+          "unico": false,
+          "patron": null,
+          "min": null,
+          "max": null
+        },
+        {
+          "key": "activo",
+          "label": "Estado",
+          "tipo": "switch",
+          "opciones": null,
+          "obligatorio": false,
+          "requeridoSi": null,
+          "unico": false,
+          "patron": null,
+          "min": null,
+          "max": null
+        }
+      ],
+      "filas": [
+        {
+          "nombre": "Saludo de cumpleaños",
+          "evento": "Cumpleaños",
+          "anticipacion": 0,
+          "destinatario": "Colaborador",
+          "activo": true
+        },
+        {
+          "nombre": "Renovación de contrato",
+          "evento": "Fin de contrato",
+          "anticipacion": 30,
+          "destinatario": "RR.HH. y jefatura",
+          "activo": true
+        },
+        {
+          "nombre": "Evaluar período de prueba",
+          "evento": "Fin de período de prueba",
+          "anticipacion": 15,
+          "destinatario": "Jefatura directa",
+          "activo": true
+        },
+        {
+          "nombre": "Examen médico ocupacional",
+          "evento": "Vencimiento de examen médico",
+          "anticipacion": 30,
+          "destinatario": "Recursos Humanos",
+          "activo": false
+        }
+      ],
+      "referenciadoPor": []
+    },
+    {
+      "clave": "empresas",
+      "singular": "Empresa",
+      "campos": [
+        {
+          "key": "razon",
+          "label": "Razón social",
+          "tipo": "texto",
+          "opciones": null,
+          "obligatorio": true,
+          "requeridoSi": null,
+          "unico": true,
+          "patron": null,
+          "min": null,
+          "max": null
+        },
+        {
+          "key": "ruc",
+          "label": "RUC",
+          "tipo": "texto",
+          "opciones": null,
+          "obligatorio": true,
+          "requeridoSi": null,
+          "unico": true,
+          "patron": {
+            "re": "^(10|15|17|20)\\d{9}$",
+            "msg": "El RUC tiene 11 dígitos y empieza con 10, 15, 17 o 20."
+          },
+          "min": null,
+          "max": null
+        },
+        {
+          "key": "direccion",
+          "label": "Domicilio fiscal",
+          "tipo": "texto",
+          "opciones": null,
+          "obligatorio": true,
+          "requeridoSi": null,
+          "unico": false,
+          "patron": null,
+          "min": null,
+          "max": null
+        },
+        {
+          "key": "regimen",
+          "label": "Régimen laboral",
+          "tipo": "select",
+          "opciones": [
+            "General",
+            "MYPE · Pequeña empresa",
+            "MYPE · Microempresa",
+            "Agrario"
+          ],
+          "obligatorio": true,
+          "requeridoSi": null,
+          "unico": false,
+          "patron": null,
+          "min": null,
+          "max": null
+        },
+        {
+          "key": "activo",
+          "label": "Estado",
+          "tipo": "switch",
+          "opciones": null,
+          "obligatorio": false,
+          "requeridoSi": null,
+          "unico": false,
+          "patron": null,
+          "min": null,
+          "max": null
+        }
+      ],
+      "filas": [
+        {
+          "razon": "Comercial Andina S.A.C.",
+          "ruc": "20512345678",
+          "direccion": "Av. Javier Prado Este 1234, San Isidro, Lima",
+          "regimen": "General",
+          "activo": true
+        },
+        {
+          "razon": "Andina Logística S.A.C.",
+          "ruc": "20601234567",
+          "direccion": "Mz. B Lt. 5, Parque Industrial, Lurín, Lima",
+          "regimen": "MYPE · Pequeña empresa",
+          "activo": true
+        }
+      ],
+      "referenciadoPor": []
+    },
+    {
+      "clave": "sindicatos",
+      "singular": "Sindicato",
+      "campos": [
+        {
+          "key": "nombre",
+          "label": "Nombre",
+          "tipo": "texto",
+          "opciones": null,
+          "obligatorio": true,
+          "requeridoSi": null,
+          "unico": true,
+          "patron": null,
+          "min": null,
+          "max": null
+        },
+        {
+          "key": "registro",
+          "label": "N° de registro",
+          "tipo": "texto",
+          "opciones": null,
+          "obligatorio": true,
+          "requeridoSi": null,
+          "unico": false,
+          "patron": null,
+          "min": null,
+          "max": null
+        },
+        {
+          "key": "cuota",
+          "label": "Cuota sindical (%)",
+          "tipo": "numero",
+          "opciones": null,
+          "obligatorio": true,
+          "requeridoSi": null,
+          "unico": false,
+          "patron": null,
+          "min": 0,
+          "max": 5
+        },
+        {
+          "key": "convenio",
+          "label": "Vigencia del convenio hasta",
+          "tipo": "fecha",
+          "opciones": null,
+          "obligatorio": false,
+          "requeridoSi": null,
+          "unico": false,
+          "patron": null,
+          "min": null,
+          "max": null
+        },
+        {
+          "key": "activo",
+          "label": "Estado",
+          "tipo": "switch",
+          "opciones": null,
+          "obligatorio": false,
+          "requeridoSi": null,
+          "unico": false,
+          "patron": null,
+          "min": null,
+          "max": null
+        }
+      ],
+      "filas": [
+        {
+          "nombre": "Sindicato de Trabajadores de Almacén Andina",
+          "registro": "SINT-2019-0451",
+          "cuota": 1,
+          "convenio": "31/12/2026",
+          "activo": true
+        }
+      ],
+      "referenciadoPor": []
+    },
+    {
+      "clave": "cuentas-contables",
+      "singular": "Cuenta contable",
+      "campos": [
+        {
+          "key": "codigo",
+          "label": "Código",
+          "tipo": "texto",
+          "opciones": null,
+          "obligatorio": true,
+          "requeridoSi": null,
+          "unico": true,
+          "patron": {
+            "re": "^\\d{2,8}$",
+            "msg": "El código tiene entre 2 y 8 dígitos."
+          },
+          "min": null,
+          "max": null
+        },
+        {
+          "key": "nombre",
+          "label": "Nombre",
+          "tipo": "texto",
+          "opciones": null,
+          "obligatorio": true,
+          "requeridoSi": null,
+          "unico": false,
+          "patron": null,
+          "min": null,
+          "max": null
+        },
+        {
+          "key": "naturaleza",
+          "label": "Naturaleza",
+          "tipo": "select",
+          "opciones": [
+            "Deudora",
+            "Acreedora"
+          ],
+          "obligatorio": true,
+          "requeridoSi": null,
+          "unico": false,
+          "patron": null,
+          "min": null,
+          "max": null
+        },
+        {
+          "key": "activo",
+          "label": "Estado",
+          "tipo": "switch",
+          "opciones": null,
+          "obligatorio": false,
+          "requeridoSi": null,
+          "unico": false,
+          "patron": null,
+          "min": null,
+          "max": null
+        }
+      ],
+      "filas": [
+        {
+          "codigo": "6211",
+          "nombre": "Sueldos y salarios",
+          "naturaleza": "Deudora",
+          "activo": true
+        },
+        {
+          "codigo": "6214",
+          "nombre": "Gratificaciones",
+          "naturaleza": "Deudora",
+          "activo": true
+        },
+        {
+          "codigo": "6215",
+          "nombre": "Vacaciones",
+          "naturaleza": "Deudora",
+          "activo": true
+        },
+        {
+          "codigo": "6271",
+          "nombre": "Régimen de prestaciones de salud (EsSalud)",
+          "naturaleza": "Deudora",
+          "activo": true
+        },
+        {
+          "codigo": "4031",
+          "nombre": "EsSalud por pagar",
+          "naturaleza": "Acreedora",
+          "activo": true
+        },
+        {
+          "codigo": "4032",
+          "nombre": "ONP por pagar",
+          "naturaleza": "Acreedora",
+          "activo": true
+        },
+        {
+          "codigo": "4111",
+          "nombre": "Sueldos y salarios por pagar",
+          "naturaleza": "Acreedora",
+          "activo": true
+        },
+        {
+          "codigo": "4171",
+          "nombre": "Administradoras de fondos de pensiones",
+          "naturaleza": "Acreedora",
+          "activo": true
+        }
+      ],
+      "referenciadoPor": [
+        {
+          "clave": "estructuras-contables",
+          "campo": "debe"
+        },
+        {
+          "clave": "estructuras-contables",
+          "campo": "haber"
+        }
+      ]
+    },
+    {
+      "clave": "centros-de-costo",
+      "singular": "Centro de costo",
+      "campos": [
+        {
+          "key": "codigo",
+          "label": "Código",
+          "tipo": "texto",
+          "opciones": null,
+          "obligatorio": true,
+          "requeridoSi": null,
+          "unico": true,
+          "patron": {
+            "re": "^CC-\\d{3}$",
+            "msg": "Usa el formato CC-000."
+          },
+          "min": null,
+          "max": null
+        },
+        {
+          "key": "nombre",
+          "label": "Nombre",
+          "tipo": "texto",
+          "opciones": null,
+          "obligatorio": true,
+          "requeridoSi": null,
+          "unico": false,
+          "patron": null,
+          "min": null,
+          "max": null
+        },
+        {
+          "key": "area",
+          "label": "Área",
+          "tipo": "select",
+          "opciones": "areas",
+          "obligatorio": false,
+          "requeridoSi": null,
+          "unico": false,
+          "patron": null,
+          "min": null,
+          "max": null
+        },
+        {
+          "key": "responsable",
+          "label": "Responsable",
+          "tipo": "select",
+          "opciones": "colaboradores",
+          "obligatorio": false,
+          "requeridoSi": null,
+          "unico": false,
+          "patron": null,
+          "min": null,
+          "max": null
+        },
+        {
+          "key": "activo",
+          "label": "Estado",
+          "tipo": "switch",
+          "opciones": null,
+          "obligatorio": false,
+          "requeridoSi": null,
+          "unico": false,
+          "patron": null,
+          "min": null,
+          "max": null
+        }
+      ],
+      "filas": [
+        {
+          "codigo": "CC-100",
+          "nombre": "Gerencia General",
+          "area": "Gerencia General",
+          "responsable": "Espinoza Vargas, Martín",
+          "activo": true
+        },
+        {
+          "codigo": "CC-110",
+          "nombre": "Finanzas",
+          "area": "Finanzas",
+          "responsable": "Navarro Ríos, Gonzalo",
+          "activo": true
+        },
+        {
+          "codigo": "CC-120",
+          "nombre": "Recursos Humanos",
+          "area": "Recursos Humanos",
+          "responsable": "Cáceres Huamán, Lucía",
+          "activo": true
+        },
+        {
+          "codigo": "CC-200",
+          "nombre": "Operaciones y almacén",
+          "area": "Logística",
+          "responsable": "Benavides Rojas, Diego",
+          "activo": true
+        },
+        {
+          "codigo": "CC-300",
+          "nombre": "Comercial",
+          "area": "Ventas",
+          "responsable": "Huertas León, Paolo",
+          "activo": true
+        },
+        {
+          "codigo": "CC-400",
+          "nombre": "Tecnología",
+          "area": "Desarrollo",
+          "responsable": "Chávez Quispe, Renato",
+          "activo": true
+        }
+      ],
+      "referenciadoPor": [
+        {
+          "clave": "puestos",
+          "campo": "centro"
+        }
+      ]
+    },
+    {
+      "clave": "estructuras-contables",
+      "singular": "Estructura contable",
+      "campos": [
+        {
+          "key": "item",
+          "label": "Ítem",
+          "tipo": "select",
+          "opciones": "items",
+          "obligatorio": true,
+          "requeridoSi": null,
+          "unico": true,
+          "patron": null,
+          "min": null,
+          "max": null
+        },
+        {
+          "key": "debe",
+          "label": "Cuenta al debe",
+          "tipo": "select",
+          "opciones": "catalogo:cuentas-contables",
+          "obligatorio": true,
+          "requeridoSi": null,
+          "unico": false,
+          "patron": null,
+          "min": null,
+          "max": null
+        },
+        {
+          "key": "haber",
+          "label": "Cuenta al haber",
+          "tipo": "select",
+          "opciones": "catalogo:cuentas-contables",
+          "obligatorio": true,
+          "requeridoSi": null,
+          "unico": false,
+          "patron": null,
+          "min": null,
+          "max": null
+        },
+        {
+          "key": "centro",
+          "label": "Centro de costo",
+          "tipo": "select",
+          "opciones": [
+            "Según el colaborador",
+            "Fijo: CC-100",
+            "Fijo: CC-120"
+          ],
+          "obligatorio": true,
+          "requeridoSi": null,
+          "unico": false,
+          "patron": null,
+          "min": null,
+          "max": null
+        }
+      ],
+      "filas": [
+        {
+          "item": "SUE-BAS · Remuneración básica",
+          "debe": "6211 · Sueldos y salarios",
+          "haber": "4111 · Sueldos y salarios por pagar",
+          "centro": "Según el colaborador"
+        },
+        {
+          "item": "ASI-FAM · Asignación familiar",
+          "debe": "6211 · Sueldos y salarios",
+          "haber": "4111 · Sueldos y salarios por pagar",
+          "centro": "Según el colaborador"
+        },
+        {
+          "item": "APO-ESS · EsSalud",
+          "debe": "6271 · Régimen de prestaciones de salud (EsSalud)",
+          "haber": "4031 · EsSalud por pagar",
+          "centro": "Según el colaborador"
+        },
+        {
+          "item": "VAC-REM · Remuneración vacacional",
+          "debe": "6215 · Vacaciones",
+          "haber": "4111 · Sueldos y salarios por pagar",
+          "centro": "Según el colaborador"
+        }
+      ],
+      "referenciadoPor": []
+    },
+    {
+      "clave": "localidades",
+      "singular": "Localidad",
+      "campos": [
+        {
+          "key": "nombre",
+          "label": "Nombre",
+          "tipo": "texto",
+          "opciones": null,
+          "obligatorio": true,
+          "requeridoSi": null,
+          "unico": true,
+          "patron": null,
+          "min": null,
+          "max": null
+        },
+        {
+          "key": "tipo",
+          "label": "Tipo",
+          "tipo": "select",
+          "opciones": [
+            "Oficina",
+            "Almacén",
+            "Tienda",
+            "Remoto"
+          ],
+          "obligatorio": true,
+          "requeridoSi": null,
+          "unico": false,
+          "patron": null,
+          "min": null,
+          "max": null
+        },
+        {
+          "key": "direccion",
+          "label": "Dirección",
+          "tipo": "texto",
+          "opciones": null,
+          "obligatorio": false,
+          "requeridoSi": {
+            "campo": "tipo",
+            "valor": "Oficina"
+          },
+          "unico": false,
+          "patron": null,
+          "min": null,
+          "max": null
+        },
+        {
+          "key": "departamento",
+          "label": "Departamento",
+          "tipo": "select",
+          "opciones": [
+            "Lima",
+            "Arequipa",
+            "La Libertad",
+            "Piura",
+            "Cusco",
+            "Ica",
+            "Junín",
+            "Lambayeque"
+          ],
+          "obligatorio": true,
+          "requeridoSi": null,
+          "unico": false,
+          "patron": null,
+          "min": null,
+          "max": null
+        },
+        {
+          "key": "activo",
+          "label": "Estado",
+          "tipo": "switch",
+          "opciones": null,
+          "obligatorio": false,
+          "requeridoSi": null,
+          "unico": false,
+          "patron": null,
+          "min": null,
+          "max": null
+        }
+      ],
+      "filas": [
+        {
+          "nombre": "Sede central · San Isidro",
+          "tipo": "Oficina",
+          "direccion": "Av. Javier Prado Este 1234, San Isidro",
+          "departamento": "Lima",
+          "activo": true
+        },
+        {
+          "nombre": "Almacén Lurín",
+          "tipo": "Almacén",
+          "direccion": "Mz. B Lt. 5, Parque Industrial, Lurín",
+          "departamento": "Lima",
+          "activo": true
+        },
+        {
+          "nombre": "Tienda Miraflores",
+          "tipo": "Tienda",
+          "direccion": "Av. Larco 455, Miraflores",
+          "departamento": "Lima",
+          "activo": true
+        },
+        {
+          "nombre": "Remoto",
+          "tipo": "Remoto",
+          "direccion": "",
+          "departamento": "Lima",
+          "activo": true
+        }
+      ],
+      "referenciadoPor": []
+    },
+    {
+      "clave": "feriados",
+      "singular": "Feriado",
+      "campos": [
+        {
+          "key": "fecha",
+          "label": "Fecha",
+          "tipo": "fecha",
+          "opciones": null,
+          "obligatorio": true,
+          "requeridoSi": null,
+          "unico": true,
+          "patron": null,
+          "min": null,
+          "max": null
+        },
+        {
+          "key": "nombre",
+          "label": "Nombre",
+          "tipo": "texto",
+          "opciones": null,
+          "obligatorio": true,
+          "requeridoSi": null,
+          "unico": false,
+          "patron": null,
+          "min": null,
+          "max": null
+        },
+        {
+          "key": "alcance",
+          "label": "Alcance",
+          "tipo": "select",
+          "opciones": [
+            "Nacional",
+            "Regional",
+            "Día no laborable de la empresa"
+          ],
+          "obligatorio": true,
+          "requeridoSi": null,
+          "unico": false,
+          "patron": null,
+          "min": null,
+          "max": null
+        }
+      ],
+      "filas": [
+        {
+          "fecha": "01/01/2026",
+          "nombre": "Año Nuevo",
+          "alcance": "Nacional"
+        },
+        {
+          "fecha": "02/04/2026",
+          "nombre": "Jueves Santo",
+          "alcance": "Nacional"
+        },
+        {
+          "fecha": "03/04/2026",
+          "nombre": "Viernes Santo",
+          "alcance": "Nacional"
+        },
+        {
+          "fecha": "01/05/2026",
+          "nombre": "Día del Trabajo",
+          "alcance": "Nacional"
+        },
+        {
+          "fecha": "07/06/2026",
+          "nombre": "Batalla de Arica y Día de la Bandera",
+          "alcance": "Nacional"
+        },
+        {
+          "fecha": "29/06/2026",
+          "nombre": "San Pedro y San Pablo",
+          "alcance": "Nacional"
+        },
+        {
+          "fecha": "23/07/2026",
+          "nombre": "Día de la Fuerza Aérea del Perú",
+          "alcance": "Nacional"
+        },
+        {
+          "fecha": "28/07/2026",
+          "nombre": "Fiestas Patrias",
+          "alcance": "Nacional"
+        },
+        {
+          "fecha": "29/07/2026",
+          "nombre": "Fiestas Patrias",
+          "alcance": "Nacional"
+        },
+        {
+          "fecha": "06/08/2026",
+          "nombre": "Batalla de Junín",
+          "alcance": "Nacional"
+        },
+        {
+          "fecha": "30/08/2026",
+          "nombre": "Santa Rosa de Lima",
+          "alcance": "Nacional"
+        },
+        {
+          "fecha": "08/10/2026",
+          "nombre": "Combate de Angamos",
+          "alcance": "Nacional"
+        },
+        {
+          "fecha": "01/11/2026",
+          "nombre": "Todos los Santos",
+          "alcance": "Nacional"
+        },
+        {
+          "fecha": "08/12/2026",
+          "nombre": "Inmaculada Concepción",
+          "alcance": "Nacional"
+        },
+        {
+          "fecha": "09/12/2026",
+          "nombre": "Batalla de Ayacucho",
+          "alcance": "Nacional"
+        },
+        {
+          "fecha": "25/12/2026",
+          "nombre": "Navidad",
+          "alcance": "Nacional"
+        }
+      ],
+      "referenciadoPor": []
+    }
+  ],
+  "formularios": [
+    {
+      "clave": "documentos",
+      "campos": [
+        {
+          "key": "metodo",
+          "label": "Método de firma",
+          "tipo": "select",
+          "opciones": [
+            "Firma digital con certificado",
+            "Firma electrónica simple (OTP por correo)"
+          ],
+          "min": null,
+          "max": null,
+          "obligatorio": false,
+          "dependeDe": null
+        },
+        {
+          "key": "recordar",
+          "label": "Recordar firmas pendientes",
+          "tipo": "switch",
+          "opciones": null,
+          "min": null,
+          "max": null,
+          "obligatorio": false,
+          "dependeDe": null
+        },
+        {
+          "key": "recordarDias",
+          "label": "Cada cuántos días",
+          "tipo": "numero",
+          "opciones": null,
+          "min": 1,
+          "max": 30,
+          "obligatorio": false,
+          "dependeDe": "recordar"
+        },
+        {
+          "key": "avisoVence",
+          "label": "Avisar antes del vencimiento de un documento (días)",
+          "tipo": "numero",
+          "opciones": null,
+          "min": 0,
+          "max": 90,
+          "obligatorio": false,
+          "dependeDe": null
+        },
+        {
+          "key": "retencion",
+          "label": "Años de conservación de documentos laborales",
+          "tipo": "numero",
+          "opciones": null,
+          "min": 1,
+          "max": 20,
+          "obligatorio": false,
+          "dependeDe": null
+        },
+        {
+          "key": "descarga",
+          "label": "Permitir que los colaboradores descarguen sus documentos en PDF",
+          "tipo": "switch",
+          "opciones": null,
+          "min": null,
+          "max": null,
+          "obligatorio": false,
+          "dependeDe": null
+        }
+      ],
+      "valores": {
+        "metodo": "Firma digital con certificado",
+        "recordar": true,
+        "recordarDias": 3,
+        "avisoVence": 30,
+        "retencion": 5,
+        "descarga": true
+      }
+    },
+    {
+      "clave": "compensaciones",
+      "campos": [
+        {
+          "key": "referencia",
+          "label": "Referencia de mercado para el punto medio",
+          "tipo": "select",
+          "opciones": [
+            "Percentil 50",
+            "Percentil 62.5",
+            "Percentil 75"
+          ],
+          "min": null,
+          "max": null,
+          "obligatorio": false,
+          "dependeDe": null
+        },
+        {
+          "key": "compaMin",
+          "label": "Compa ratio mínimo aceptable",
+          "tipo": "numero",
+          "opciones": null,
+          "min": 0.5,
+          "max": 1,
+          "obligatorio": false,
+          "dependeDe": null
+        },
+        {
+          "key": "compaMax",
+          "label": "Compa ratio máximo aceptable",
+          "tipo": "numero",
+          "opciones": null,
+          "min": 1,
+          "max": 1.5,
+          "obligatorio": false,
+          "dependeDe": null
+        },
+        {
+          "key": "ajuste",
+          "label": "Ajuste anual de bandas por inflación (%)",
+          "tipo": "numero",
+          "opciones": null,
+          "min": 0,
+          "max": 15,
+          "obligatorio": false,
+          "dependeDe": null
+        },
+        {
+          "key": "verBanda",
+          "label": "Mostrar al colaborador su ubicación en la banda",
+          "tipo": "switch",
+          "opciones": null,
+          "min": null,
+          "max": null,
+          "obligatorio": false,
+          "dependeDe": null
+        },
+        {
+          "key": "verJefe",
+          "label": "Mostrar a las jefaturas las bandas de su equipo",
+          "tipo": "switch",
+          "opciones": null,
+          "min": null,
+          "max": null,
+          "obligatorio": false,
+          "dependeDe": null
+        }
+      ],
+      "valores": {
+        "referencia": "Percentil 50",
+        "compaMin": 0.8,
+        "compaMax": 1.2,
+        "ajuste": 3,
+        "verBanda": false,
+        "verJefe": true
+      }
+    },
+    {
+      "clave": "encuestas",
+      "campos": [
+        {
+          "key": "minimo",
+          "label": "Respuestas mínimas para mostrar resultados de un grupo",
+          "tipo": "numero",
+          "opciones": null,
+          "min": 3,
+          "max": 20,
+          "obligatorio": false,
+          "dependeDe": null
+        },
+        {
+          "key": "comentarios",
+          "label": "Permitir comentarios abiertos",
+          "tipo": "switch",
+          "opciones": null,
+          "min": null,
+          "max": null,
+          "obligatorio": false,
+          "dependeDe": null
+        },
+        {
+          "key": "escala",
+          "label": "Escala por defecto",
+          "tipo": "select",
+          "opciones": [
+            "1 a 5",
+            "1 a 7",
+            "eNPS (0 a 10)"
+          ],
+          "min": null,
+          "max": null,
+          "obligatorio": false,
+          "dependeDe": null
+        },
+        {
+          "key": "recordatorios",
+          "label": "Enviar recordatorios a quienes no respondieron",
+          "tipo": "switch",
+          "opciones": null,
+          "min": null,
+          "max": null,
+          "obligatorio": false,
+          "dependeDe": null
+        },
+        {
+          "key": "recordatorioDias",
+          "label": "Cada cuántos días",
+          "tipo": "numero",
+          "opciones": null,
+          "min": 1,
+          "max": 14,
+          "obligatorio": false,
+          "dependeDe": "recordatorios"
+        }
+      ],
+      "valores": {
+        "minimo": 5,
+        "comentarios": true,
+        "escala": "1 a 5",
+        "recordatorios": true,
+        "recordatorioDias": 3
+      }
+    },
+    {
+      "clave": "denuncias",
+      "campos": [
+        {
+          "key": "anonimo",
+          "label": "Permitir denuncias anónimas",
+          "tipo": "switch",
+          "opciones": null,
+          "min": null,
+          "max": null,
+          "obligatorio": false,
+          "dependeDe": null
+        },
+        {
+          "key": "externo",
+          "label": "Habilitar formulario público para terceros (proveedores, clientes)",
+          "tipo": "switch",
+          "opciones": null,
+          "min": null,
+          "max": null,
+          "obligatorio": false,
+          "dependeDe": null
+        },
+        {
+          "key": "correo",
+          "label": "Correo del comité que recibe las denuncias",
+          "tipo": "email",
+          "opciones": null,
+          "min": null,
+          "max": null,
+          "obligatorio": true,
+          "dependeDe": null
+        },
+        {
+          "key": "acuse",
+          "label": "Plazo para acusar recibo (días hábiles)",
+          "tipo": "numero",
+          "opciones": null,
+          "min": 1,
+          "max": 10,
+          "obligatorio": false,
+          "dependeDe": null
+        },
+        {
+          "key": "investigacion",
+          "label": "Plazo objetivo de investigación (días calendario)",
+          "tipo": "numero",
+          "opciones": null,
+          "min": 5,
+          "max": 90,
+          "obligatorio": false,
+          "dependeDe": null
+        },
+        {
+          "key": "seguimiento",
+          "label": "Permitir al denunciante ver el estado con un código de seguimiento",
+          "tipo": "switch",
+          "opciones": null,
+          "min": null,
+          "max": null,
+          "obligatorio": false,
+          "dependeDe": null
+        }
+      ],
+      "valores": {
+        "anonimo": true,
+        "externo": false,
+        "correo": "comite.etica@comercialandina.pe",
+        "acuse": 3,
+        "investigacion": 30,
+        "seguimiento": true
+      }
+    },
+    {
+      "clave": "sst",
+      "campos": [
+        {
+          "key": "organo",
+          "label": "Órgano de SST",
+          "tipo": "select",
+          "opciones": [
+            "Supervisor de SST",
+            "Comité de SST"
+          ],
+          "min": null,
+          "max": null,
+          "obligatorio": false,
+          "dependeDe": null
+        },
+        {
+          "key": "responsable",
+          "label": "Correo del responsable de SST",
+          "tipo": "email",
+          "opciones": null,
+          "min": null,
+          "max": null,
+          "obligatorio": true,
+          "dependeDe": null
+        },
+        {
+          "key": "capacitaciones",
+          "label": "Capacitaciones de SST por año",
+          "tipo": "numero",
+          "opciones": null,
+          "min": 1,
+          "max": 12,
+          "obligatorio": false,
+          "dependeDe": null
+        },
+        {
+          "key": "emo",
+          "label": "Periodicidad del examen médico ocupacional (años)",
+          "tipo": "numero",
+          "opciones": null,
+          "min": 1,
+          "max": 3,
+          "obligatorio": false,
+          "dependeDe": null
+        },
+        {
+          "key": "incidentes",
+          "label": "Plazo para registrar un incidente (horas)",
+          "tipo": "numero",
+          "opciones": null,
+          "min": 1,
+          "max": 72,
+          "obligatorio": false,
+          "dependeDe": null
+        },
+        {
+          "key": "alertas",
+          "label": "Alertar requisitos de SST vencidos al responsable",
+          "tipo": "switch",
+          "opciones": null,
+          "min": null,
+          "max": null,
+          "obligatorio": false,
+          "dependeDe": null
+        }
+      ],
+      "valores": {
+        "organo": "Supervisor de SST",
+        "responsable": "l.perez@comercialandina.pe",
+        "capacitaciones": 4,
+        "emo": 2,
+        "incidentes": 24,
+        "alertas": true
+      }
+    },
+    {
+      "clave": "notificaciones",
+      "campos": [
+        {
+          "key": "mail_vac",
+          "label": "Solicitud de vacaciones o permiso",
+          "tipo": "switch",
+          "opciones": null,
+          "min": null,
+          "max": null,
+          "obligatorio": false,
+          "dependeDe": null
+        },
+        {
+          "key": "mail_res",
+          "label": "Solicitud aprobada o rechazada",
+          "tipo": "switch",
+          "opciones": null,
+          "min": null,
+          "max": null,
+          "obligatorio": false,
+          "dependeDe": null
+        },
+        {
+          "key": "mail_bol",
+          "label": "Boleta de pago disponible",
+          "tipo": "switch",
+          "opciones": null,
+          "min": null,
+          "max": null,
+          "obligatorio": false,
+          "dependeDe": null
+        },
+        {
+          "key": "mail_fir",
+          "label": "Documento pendiente de firma",
+          "tipo": "switch",
+          "opciones": null,
+          "min": null,
+          "max": null,
+          "obligatorio": false,
+          "dependeDe": null
+        },
+        {
+          "key": "mail_rec",
+          "label": "Reconocimiento recibido",
+          "tipo": "switch",
+          "opciones": null,
+          "min": null,
+          "max": null,
+          "obligatorio": false,
+          "dependeDe": null
+        },
+        {
+          "key": "mail_enc",
+          "label": "Encuesta asignada",
+          "tipo": "switch",
+          "opciones": null,
+          "min": null,
+          "max": null,
+          "obligatorio": false,
+          "dependeDe": null
+        },
+        {
+          "key": "web_vac",
+          "label": "Solicitud de vacaciones o permiso",
+          "tipo": "switch",
+          "opciones": null,
+          "min": null,
+          "max": null,
+          "obligatorio": false,
+          "dependeDe": null
+        },
+        {
+          "key": "web_res",
+          "label": "Solicitud aprobada o rechazada",
+          "tipo": "switch",
+          "opciones": null,
+          "min": null,
+          "max": null,
+          "obligatorio": false,
+          "dependeDe": null
+        },
+        {
+          "key": "web_bol",
+          "label": "Boleta de pago disponible",
+          "tipo": "switch",
+          "opciones": null,
+          "min": null,
+          "max": null,
+          "obligatorio": false,
+          "dependeDe": null
+        },
+        {
+          "key": "web_fir",
+          "label": "Documento pendiente de firma",
+          "tipo": "switch",
+          "opciones": null,
+          "min": null,
+          "max": null,
+          "obligatorio": false,
+          "dependeDe": null
+        },
+        {
+          "key": "web_rec",
+          "label": "Reconocimiento recibido",
+          "tipo": "switch",
+          "opciones": null,
+          "min": null,
+          "max": null,
+          "obligatorio": false,
+          "dependeDe": null
+        },
+        {
+          "key": "web_enc",
+          "label": "Encuesta asignada",
+          "tipo": "switch",
+          "opciones": null,
+          "min": null,
+          "max": null,
+          "obligatorio": false,
+          "dependeDe": null
+        },
+        {
+          "key": "remitente",
+          "label": "Nombre del remitente",
+          "tipo": "texto",
+          "opciones": null,
+          "min": null,
+          "max": null,
+          "obligatorio": true,
+          "dependeDe": null
+        },
+        {
+          "key": "respuesta",
+          "label": "Correo de respuesta",
+          "tipo": "email",
+          "opciones": null,
+          "min": null,
+          "max": null,
+          "obligatorio": true,
+          "dependeDe": null
+        }
+      ],
+      "valores": {
+        "mail_vac": true,
+        "mail_res": true,
+        "mail_bol": true,
+        "mail_fir": true,
+        "mail_rec": false,
+        "mail_enc": true,
+        "web_vac": true,
+        "web_res": true,
+        "web_bol": true,
+        "web_fir": true,
+        "web_rec": true,
+        "web_enc": true,
+        "remitente": "Recursos Humanos · Comercial Andina",
+        "respuesta": "rrhh@comercialandina.pe"
+      }
+    },
+    {
+      "clave": "ca-tolerancias",
+      "campos": [
+        {
+          "key": "toleranciaSalida",
+          "label": "Tolerancia de salida anticipada (minutos)",
+          "tipo": "numero",
+          "opciones": null,
+          "min": 0,
+          "max": 60,
+          "obligatorio": false,
+          "dependeDe": null
+        },
+        {
+          "key": "minExceso",
+          "label": "Exceso mínimo para considerar horas extras (minutos)",
+          "tipo": "numero",
+          "opciones": null,
+          "min": 1,
+          "max": 120,
+          "obligatorio": false,
+          "dependeDe": null
+        },
+        {
+          "key": "contarAntes",
+          "label": "Considerar como horas extras el tiempo antes del inicio del turno",
+          "tipo": "switch",
+          "opciones": null,
+          "min": null,
+          "max": null,
+          "obligatorio": false,
+          "dependeDe": null
+        },
+        {
+          "key": "alDisminucion",
+          "label": "Disminución anormal de asistencia",
+          "tipo": "switch",
+          "opciones": null,
+          "min": null,
+          "max": null,
+          "obligatorio": false,
+          "dependeDe": null
+        },
+        {
+          "key": "umbralDisminucion",
+          "label": "Puntos porcentuales por debajo del promedio del mismo día de la semana",
+          "tipo": "numero",
+          "opciones": null,
+          "min": 5,
+          "max": 50,
+          "obligatorio": false,
+          "dependeDe": "alDisminucion"
+        },
+        {
+          "key": "alSinFoto",
+          "label": "Registros sin foto",
+          "tipo": "switch",
+          "opciones": null,
+          "min": null,
+          "max": null,
+          "obligatorio": false,
+          "dependeDe": null
+        },
+        {
+          "key": "alIncompletos",
+          "label": "Registros incompletos del día hábil anterior",
+          "tipo": "switch",
+          "opciones": null,
+          "min": null,
+          "max": null,
+          "obligatorio": false,
+          "dependeDe": null
+        },
+        {
+          "key": "alHhee",
+          "label": "Posibles horas extras por aprobar",
+          "tipo": "switch",
+          "opciones": null,
+          "min": null,
+          "max": null,
+          "obligatorio": false,
+          "dependeDe": null
+        },
+        {
+          "key": "alLunes",
+          "label": "Inasistencias en lunes",
+          "tipo": "switch",
+          "opciones": null,
+          "min": null,
+          "max": null,
+          "obligatorio": false,
+          "dependeDe": null
+        },
+        {
+          "key": "lunes",
+          "label": "Cantidad de lunes en el mes",
+          "tipo": "numero",
+          "opciones": null,
+          "min": 1,
+          "max": 4,
+          "obligatorio": false,
+          "dependeDe": "alLunes"
+        },
+        {
+          "key": "alInasistencias",
+          "label": "Inasistencias en el mes",
+          "tipo": "switch",
+          "opciones": null,
+          "min": null,
+          "max": null,
+          "obligatorio": false,
+          "dependeDe": null
+        },
+        {
+          "key": "inasistencias",
+          "label": "Días de inasistencia en el mes",
+          "tipo": "numero",
+          "opciones": null,
+          "min": 1,
+          "max": 10,
+          "obligatorio": false,
+          "dependeDe": "alInasistencias"
+        },
+        {
+          "key": "alDomingos",
+          "label": "Domingos trabajados en el mes",
+          "tipo": "switch",
+          "opciones": null,
+          "min": null,
+          "max": null,
+          "obligatorio": false,
+          "dependeDe": null
+        },
+        {
+          "key": "domingos",
+          "label": "Cantidad de domingos",
+          "tipo": "numero",
+          "opciones": null,
+          "min": 1,
+          "max": 5,
+          "obligatorio": false,
+          "dependeDe": "alDomingos"
+        }
+      ],
+      "valores": {
+        "toleranciaSalida": 5,
+        "minExceso": 30,
+        "contarAntes": true,
+        "alDisminucion": true,
+        "umbralDisminucion": 15,
+        "alSinFoto": true,
+        "alIncompletos": true,
+        "alHhee": true,
+        "alLunes": true,
+        "lunes": 2,
+        "alInasistencias": true,
+        "inasistencias": 3,
+        "alDomingos": true,
+        "domingos": 2
+      }
+    },
+    {
+      "clave": "ca-metodos",
+      "campos": [
+        {
+          "key": "web",
+          "label": "Portal web (widget Registrar Asistencia de Mi Portal)",
+          "tipo": "switch",
+          "opciones": null,
+          "min": null,
+          "max": null,
+          "obligatorio": false,
+          "dependeDe": null
+        },
+        {
+          "key": "app",
+          "label": "App móvil con GPS",
+          "tipo": "switch",
+          "opciones": null,
+          "min": null,
+          "max": null,
+          "obligatorio": false,
+          "dependeDe": null
+        },
+        {
+          "key": "qr",
+          "label": "Código QR del recinto",
+          "tipo": "switch",
+          "opciones": null,
+          "min": null,
+          "max": null,
+          "obligatorio": false,
+          "dependeDe": null
+        },
+        {
+          "key": "foto",
+          "label": "Foto desde un dispositivo compartido",
+          "tipo": "switch",
+          "opciones": null,
+          "min": null,
+          "max": null,
+          "obligatorio": false,
+          "dependeDe": null
+        },
+        {
+          "key": "exigirFoto",
+          "label": "Exigir foto en las marcas desde la app o QR",
+          "tipo": "switch",
+          "opciones": null,
+          "min": null,
+          "max": null,
+          "obligatorio": false,
+          "dependeDe": null
+        },
+        {
+          "key": "exigirRadio",
+          "label": "Exigir que la marca esté dentro del radio del recinto",
+          "tipo": "switch",
+          "opciones": null,
+          "min": null,
+          "max": null,
+          "obligatorio": false,
+          "dependeDe": null
+        },
+        {
+          "key": "radioDefecto",
+          "label": "Radio por defecto de los recintos nuevos (metros)",
+          "tipo": "numero",
+          "opciones": null,
+          "min": 20,
+          "max": 2000,
+          "obligatorio": false,
+          "dependeDe": null
+        }
+      ],
+      "valores": {
+        "web": true,
+        "app": true,
+        "qr": true,
+        "foto": false,
+        "exigirFoto": true,
+        "exigirRadio": true,
+        "radioDefecto": 150
+      }
+    }
+  ]
+}

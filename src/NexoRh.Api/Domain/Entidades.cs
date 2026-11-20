@@ -122,6 +122,16 @@ public class Perfil
     public string ModificadoPor { get; set; } = "";
 }
 
+/// <summary>Fila de un catálogo genérico (empresas, centros de costo…). Los campos van en Datos (JSON) según Data/genericos.json.</summary>
+public class FilaCatalogo
+{
+    public int Id { get; set; }
+    public string Clave { get; set; } = "";
+    public string Datos { get; set; } = "{}";
+    public DateTime ActualizadoEn { get; set; } = DateTime.UtcNow;
+    public string ModificadoPor { get; set; } = "";
+}
+
 /// <summary>Configuración de un módulo (p. ej. "ca-metodos"), guardada como JSON.</summary>
 public class Configuracion
 {

@@ -13,6 +13,16 @@ public class NexoDbContext(DbContextOptions<NexoDbContext> options) : DbContext(
     public DbSet<Cambio> Cambios => Set<Cambio>();
     public DbSet<Perfil> Perfiles => Set<Perfil>();
     public DbSet<Configuracion> Configuraciones => Set<Configuracion>();
+    public DbSet<FilaCatalogo> FilasCatalogo => Set<FilaCatalogo>();
+    public DbSet<PlantillaWorkflow> PlantillasWorkflow => Set<PlantillaWorkflow>();
+    public DbSet<SolicitudWorkflow> SolicitudesWorkflow => Set<SolicitudWorkflow>();
+    public DbSet<Reconocimiento> Reconocimientos => Set<Reconocimiento>();
+    public DbSet<Encuesta> Encuestas => Set<Encuesta>();
+    public DbSet<ParticipacionEncuesta> ParticipacionesEncuesta => Set<ParticipacionEncuesta>();
+    public DbSet<RespuestaEncuesta> RespuestasEncuesta => Set<RespuestaEncuesta>();
+    public DbSet<Denuncia> Denuncias => Set<Denuncia>();
+    public DbSet<MensajeDenuncia> MensajesDenuncia => Set<MensajeDenuncia>();
+    public DbSet<Publicacion> Publicaciones => Set<Publicacion>();
 
     public DbSet<TipoItem> TiposItem => Set<TipoItem>();
     public DbSet<AsignacionItem> AsignacionesItem => Set<AsignacionItem>();
@@ -114,6 +124,12 @@ public class NexoDbContext(DbContextOptions<NexoDbContext> options) : DbContext(
             e.Property(x => x.ModificadoPor).HasMaxLength(120);
         });
         b.Entity<Usuario>().HasOne<Perfil>().WithMany().HasForeignKey(x => x.PerfilId).OnDelete(DeleteBehavior.Restrict);
+        b.Entity<FilaCatalogo>(e =>
+        {
+            e.Property(x => x.Clave).HasMaxLength(40).IsRequired();
+            e.HasIndex(x => x.Clave);
+            e.Property(x => x.ModificadoPor).HasMaxLength(120);
+        });
         b.Entity<Configuracion>(e =>
         {
             e.HasKey(x => x.Clave);
@@ -122,6 +138,101 @@ public class NexoDbContext(DbContextOptions<NexoDbContext> options) : DbContext(
         });
         AsistenciaModelo(b);
         RemuneracionesModelo(b);
+        WorkflowModelo(b);
+        ComunicacionModelo(b);
+    }
+
+    private static void ComunicacionModelo(ModelBuilder b)
+    {
+        b.Entity<Encuesta>(e =>
+        {
+            e.Property(x => x.Nombre).HasMaxLength(120).IsRequired();
+            e.Property(x => x.Tipo).HasMaxLength(10);
+            e.Property(x => x.Descripcion).HasMaxLength(500);
+            e.Property(x => x.CreadaPor).HasMaxLength(120);
+            e.OwnsMany(x => x.Preguntas, p => { p.ToJson(); });
+        });
+        b.Entity<ParticipacionEncuesta>(e =>
+        {
+            e.HasKey(x => new { x.EncuestaId, x.ColaboradorId });
+            e.HasOne<Encuesta>().WithMany().HasForeignKey(x => x.EncuestaId).OnDelete(DeleteBehavior.Cascade);
+            e.HasOne<Colaborador>().WithMany().HasForeignKey(x => x.ColaboradorId).OnDelete(DeleteBehavior.Cascade);
+        });
+        b.Entity<RespuestaEncuesta>(e =>
+        {
+            e.Property(x => x.Valores).HasConversion(
+                v => System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions?)null),
+                v => System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(v, (System.Text.Json.JsonSerializerOptions?)null) ?? new())
+                .Metadata.SetValueComparer(new Microsoft.EntityFrameworkCore.ChangeTracking.ValueComparer<Dictionary<string, string>>(
+                    (a, c) => System.Text.Json.JsonSerializer.Serialize(a, (System.Text.Json.JsonSerializerOptions?)null) == System.Text.Json.JsonSerializer.Serialize(c, (System.Text.Json.JsonSerializerOptions?)null),
+                    v => System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions?)null).GetHashCode(),
+                    v => new Dictionary<string, string>(v)));
+            e.HasIndex(x => x.EncuestaId);
+            e.HasOne<Encuesta>().WithMany().HasForeignKey(x => x.EncuestaId).OnDelete(DeleteBehavior.Cascade);
+        });
+        b.Entity<Denuncia>(e =>
+        {
+            e.Property(x => x.Codigo).HasMaxLength(12).IsRequired();
+            e.HasIndex(x => x.Codigo).IsUnique();
+            e.Property(x => x.Tipo).HasMaxLength(60);
+            e.Property(x => x.Relacion).HasMaxLength(30);
+            e.Property(x => x.Descripcion).HasMaxLength(4000);
+            e.Property(x => x.DenuncianteNombre).HasMaxLength(170);
+            e.Property(x => x.Estado).HasMaxLength(12);
+            e.Property(x => x.Resolucion).HasMaxLength(1000);
+            e.HasMany(x => x.Mensajes).WithOne().HasForeignKey(m => m.DenunciaId).OnDelete(DeleteBehavior.Cascade);
+        });
+        b.Entity<MensajeDenuncia>(e =>
+        {
+            e.Property(x => x.Autor).HasMaxLength(12);
+            e.Property(x => x.Texto).HasMaxLength(2000);
+        });
+        b.Entity<Publicacion>(e =>
+        {
+            e.Property(x => x.Titulo).HasMaxLength(150).IsRequired();
+            e.Property(x => x.Texto).HasMaxLength(4000);
+            e.Property(x => x.Autor).HasMaxLength(80);
+        });
+    }
+
+    private static void WorkflowModelo(ModelBuilder b)
+    {
+        b.Entity<PlantillaWorkflow>(e =>
+        {
+            e.Property(x => x.Id).ValueGeneratedNever();
+            e.Property(x => x.Nombre).HasMaxLength(100).IsRequired();
+            e.HasIndex(x => x.Nombre).IsUnique();
+            e.Property(x => x.Tipo).HasMaxLength(20);
+            e.Property(x => x.Estado).HasMaxLength(12);
+            e.Property(x => x.ModificadoPor).HasMaxLength(120);
+        });
+        b.Entity<SolicitudWorkflow>(e =>
+        {
+            // Los números de solicitud siguen la numeración del sistema anterior.
+            e.Property(x => x.Id).UseIdentityColumn(18_700, 1);
+            e.Property(x => x.Titulo).HasMaxLength(200).IsRequired();
+            e.Property(x => x.Tipo).HasMaxLength(20);
+            e.Property(x => x.Proceso).HasMaxLength(20);
+            e.Property(x => x.Solicitante).HasMaxLength(170);
+            e.Property(x => x.Afectado).HasMaxLength(170);
+            e.Property(x => x.Documento).HasMaxLength(15);
+            e.Property(x => x.Detalle).HasMaxLength(300);
+            e.Property(x => x.Monto).HasPrecision(12, 2);
+            e.Property(x => x.Estado).HasMaxLength(12);
+            e.Property(x => x.Comentario).HasMaxLength(300);
+            e.Property(x => x.ResueltaPor).HasMaxLength(120);
+            e.HasIndex(x => x.AfectadoId);
+            e.HasOne<PlantillaWorkflow>().WithMany().HasForeignKey(x => x.PlantillaId).OnDelete(DeleteBehavior.SetNull);
+            e.HasOne<Colaborador>().WithMany().HasForeignKey(x => x.AfectadoId).OnDelete(DeleteBehavior.SetNull);
+        });
+        b.Entity<Reconocimiento>(e =>
+        {
+            e.Property(x => x.Para).HasMaxLength(500);
+            e.Property(x => x.Autor).HasMaxLength(170);
+            e.Property(x => x.Valor).HasMaxLength(60);
+            e.Property(x => x.Mensaje).HasMaxLength(300);
+            e.HasIndex(x => x.Fecha);
+        });
     }
 
     private static void RemuneracionesModelo(ModelBuilder b)
@@ -317,6 +428,7 @@ public class NexoDbContext(DbContextOptions<NexoDbContext> options) : DbContext(
         {
             e.HasKey(x => x.Fecha);
             e.Property(x => x.Nombre).HasMaxLength(80);
+            e.Property(x => x.Alcance).HasMaxLength(40);
         });
     }
 }

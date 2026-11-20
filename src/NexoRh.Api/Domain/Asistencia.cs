@@ -209,8 +209,11 @@ public class LineaHhee
     public int Tipo { get; set; }
 }
 
+/// <summary>Feriado. Se mantiene igual al catálogo genérico "feriados" (Configuración › Feriados), que es donde se edita.</summary>
 public class Feriado
 {
     public DateOnly Fecha { get; set; }
     public string Nombre { get; set; } = "";
+    /// <summary>Nacional o Regional.</summary>
+    public string Alcance { get; set; } = "Nacional";
 }

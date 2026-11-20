@@ -67,6 +67,7 @@ builder.Services.AddCors(o => o.AddDefaultPolicy(p => p.WithOrigins(origenes).Al
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<Auditoria>();
 builder.Services.AddScoped<Alcance>();
+builder.Services.AddSingleton<Genericos>();
 builder.Services.AddScoped<Configuraciones>();
 builder.Services.AddScoped<Planilla>();
 builder.Services.Configure<RelojAsistencia.Opciones>(config.GetSection("Asistencia"));
@@ -96,6 +97,9 @@ if (config.GetValue("BaseDatos:MigrarAlIniciar", app.Environment.IsDevelopment()
     var db = scope.ServiceProvider.GetRequiredService<NexoDbContext>();
     await db.Database.MigrateAsync();
     await Semilla.CargarAsync(db, config, app.Logger);
+    await SemillaCatalogos.CargarAsync(db, scope.ServiceProvider.GetRequiredService<Genericos>());
+    await SemillaWorkflow.CargarAsync(db);
+    await SemillaComunicacion.CargarAsync(db);
 }
 
 app.UseExceptionHandler();
