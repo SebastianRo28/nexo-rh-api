@@ -46,6 +46,7 @@ public static class Semilla
             await db.SaveChangesAsync();
         }
         await VincularPerfiles(db);
+        await SemillaRemuneraciones.CargarAsync(db);
 
         if (!await db.Usuarios.AnyAsync())
         {

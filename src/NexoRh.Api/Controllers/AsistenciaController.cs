@@ -18,7 +18,7 @@ namespace NexoRh.Api.Controllers;
 [ApiController]
 [Route("api/asistencia")]
 [Authorize]
-public partial class AsistenciaController(NexoDbContext db, Auditoria auditoria, Alcance alcance, RelojAsistencia reloj, Configuraciones configuraciones) : ControllerBase
+public partial class AsistenciaController(NexoDbContext db, Auditoria auditoria, Alcance alcance, RelojAsistencia reloj, Configuraciones configuraciones, Planilla planilla) : ControllerBase
 {
     private static readonly string[] Metodos = ["Web", "App", "QR", "Foto"];
     private static readonly string[] TiposMarca = ["Entrada", "Salida"];
@@ -190,6 +190,8 @@ public partial class AsistenciaController(NexoDbContext db, Auditoria auditoria,
         if (c is null) return Error("colaboradorId", "El colaborador no existe.");
         if (!await alcance.GestionaAsync(c.Id)) return Prohibido("No puedes aprobar horas extras de este colaborador.");
         if (!Fechas.TryLeer(p.Fecha, out var fecha) || fecha > reloj.Hoy) return Error("fecha", "La fecha no es válida.");
+        if (await db.Periodos.AnyAsync(x => x.Id == Planilla.De(fecha) && x.Cerrado))
+            return Error("fecha", $"El período de planilla {Planilla.Texto(Planilla.De(fecha))} está cerrado: sus horas extras ya no se modifican.");
         var actual = await db.AprobacionesHhee.FirstOrDefaultAsync(x => x.ColaboradorId == c.Id && x.Fecha == fecha);
         if (actual?.Enviado == true && !alcance.EsAdmin) return Prohibido("Estas horas extras ya se enviaron a planilla; solo un administrador puede cambiarlas.");
         var previo = actual?.Estado ?? "En espera";
@@ -226,20 +228,20 @@ public partial class AsistenciaController(NexoDbContext db, Auditoria auditoria,
         return Mapeo.Aprobacion(a);
     }
 
-    /// <summary>Marca como enviadas a planilla las horas extras aprobadas del período abierto (el mes de hoy).</summary>
+    /// <summary>Marca como enviadas a planilla las horas extras aprobadas del período abierto de planilla (se pagan al procesarla).</summary>
     [HttpPost("hhee/enviar")]
     [Authorize(Policy = Politicas.Administrador)]
     public async Task<EnvioHheeResultado> Enviar(EnvioHhee p)
     {
         var omitidos = new List<string>();
         var enviados = 0;
-        var hoy = reloj.Hoy;
+        var abierto = await planilla.AbiertoAsync();
         foreach (var k in p.Items ?? [])
         {
             if (!Fechas.TryLeer(k.Fecha, out var f)) continue;
             var a = await db.AprobacionesHhee.FirstOrDefaultAsync(x => x.ColaboradorId == k.ColaboradorId && x.Fecha == f);
             if (a is null || a.Estado is not ("Aprobado" or "Aprobado parcial")) { omitidos.Add($"{k.ColaboradorId} ({k.Fecha}): no está aprobada"); continue; }
-            if (f.Year != hoy.Year || f.Month != hoy.Month) { omitidos.Add($"{k.ColaboradorId} ({k.Fecha}): el período {f:MM/yyyy} está cerrado"); continue; }
+            if (Planilla.De(f) != abierto) { omitidos.Add($"{k.ColaboradorId} ({k.Fecha}): el período {Planilla.Texto(Planilla.De(f))} no es el período abierto de planilla"); continue; }
             if (a.Enviado) continue;
             a.Enviado = true;
             enviados++;

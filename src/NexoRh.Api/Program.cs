@@ -68,6 +68,7 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<Auditoria>();
 builder.Services.AddScoped<Alcance>();
 builder.Services.AddScoped<Configuraciones>();
+builder.Services.AddScoped<Planilla>();
 builder.Services.Configure<RelojAsistencia.Opciones>(config.GetSection("Asistencia"));
 builder.Services.AddSingleton<RelojAsistencia>();
 builder.Services.AddProblemDetails();

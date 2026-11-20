@@ -14,6 +14,14 @@ public class NexoDbContext(DbContextOptions<NexoDbContext> options) : DbContext(
     public DbSet<Perfil> Perfiles => Set<Perfil>();
     public DbSet<Configuracion> Configuraciones => Set<Configuracion>();
 
+    public DbSet<TipoItem> TiposItem => Set<TipoItem>();
+    public DbSet<AsignacionItem> AsignacionesItem => Set<AsignacionItem>();
+    public DbSet<ParametroRem> ParametrosRem => Set<ParametroRem>();
+    public DbSet<ComisionAfp> ComisionesAfp => Set<ComisionAfp>();
+    public DbSet<TramoRenta> TramosRenta => Set<TramoRenta>();
+    public DbSet<PeriodoPlanilla> Periodos => Set<PeriodoPlanilla>();
+    public DbSet<Boleta> Boletas => Set<Boleta>();
+
     public DbSet<Recinto> Recintos => Set<Recinto>();
     public DbSet<Turno> Turnos => Set<Turno>();
     public DbSet<AsignacionTurno> AsignacionesTurno => Set<AsignacionTurno>();
@@ -113,6 +121,70 @@ public class NexoDbContext(DbContextOptions<NexoDbContext> options) : DbContext(
             e.Property(x => x.ModificadoPor).HasMaxLength(120);
         });
         AsistenciaModelo(b);
+        RemuneracionesModelo(b);
+    }
+
+    private static void RemuneracionesModelo(ModelBuilder b)
+    {
+        b.Entity<TipoItem>(e =>
+        {
+            e.Property(x => x.Id).ValueGeneratedNever();
+            e.Property(x => x.Codigo).HasMaxLength(10).IsRequired();
+            e.HasIndex(x => x.Codigo).IsUnique();
+            e.Property(x => x.Nombre).HasMaxLength(80).IsRequired();
+            e.Property(x => x.Clase).HasMaxLength(20);
+            e.Property(x => x.Plame).HasMaxLength(4);
+        });
+        b.Entity<AsignacionItem>(e =>
+        {
+            e.Property(x => x.Monto).HasPrecision(12, 2);
+            e.Property(x => x.Observacion).HasMaxLength(300);
+            e.HasIndex(x => x.ColaboradorId);
+            e.HasOne<Colaborador>().WithMany().HasForeignKey(x => x.ColaboradorId).OnDelete(DeleteBehavior.Cascade);
+            e.HasOne<TipoItem>().WithMany().HasForeignKey(x => x.TipoItemId).OnDelete(DeleteBehavior.Restrict);
+        });
+        b.Entity<ParametroRem>(e =>
+        {
+            e.HasKey(x => x.Clave);
+            e.Property(x => x.Clave).HasMaxLength(30);
+            e.Property(x => x.Nombre).HasMaxLength(80);
+            e.Property(x => x.Valor).HasPrecision(12, 4);
+            e.Property(x => x.Unidad).HasMaxLength(5);
+            e.Property(x => x.VigenteDesde).HasMaxLength(10);
+            e.Property(x => x.Fuente).HasMaxLength(120);
+        });
+        b.Entity<ComisionAfp>(e =>
+        {
+            e.HasKey(x => x.Afp);
+            e.Property(x => x.Afp).HasMaxLength(20);
+            e.Property(x => x.ComisionFlujoPct).HasPrecision(6, 4);
+            e.Property(x => x.ComisionSaldoPct).HasPrecision(6, 4);
+        });
+        b.Entity<TramoRenta>(e =>
+        {
+            e.Property(x => x.Desde).HasPrecision(6, 2);
+            e.Property(x => x.Hasta).HasPrecision(6, 2);
+            e.Property(x => x.TasaPct).HasPrecision(5, 2);
+        });
+        b.Entity<PeriodoPlanilla>(e =>
+        {
+            e.Property(x => x.Id).ValueGeneratedNever();
+            e.Property(x => x.ProcesadoPor).HasMaxLength(120);
+            e.Property(x => x.CerradoPor).HasMaxLength(120);
+        });
+        b.Entity<Boleta>(e =>
+        {
+            e.HasIndex(x => new { x.Periodo, x.ColaboradorId }).IsUnique();
+            e.Property(x => x.Nombre).HasMaxLength(170);
+            e.Property(x => x.Documento).HasMaxLength(15);
+            e.Property(x => x.Cargo).HasMaxLength(80);
+            e.Property(x => x.Regimen).HasMaxLength(60);
+            foreach (var p in new[] { nameof(Boleta.Ingresos), nameof(Boleta.Descuentos), nameof(Boleta.Aportes), nameof(Boleta.Neto), nameof(Boleta.BaseQuinta), nameof(Boleta.RetencionQuinta) })
+                e.Property(p).HasPrecision(12, 2);
+            e.OwnsMany(x => x.Lineas, l => l.ToJson());
+            e.HasOne<Colaborador>().WithMany().HasForeignKey(x => x.ColaboradorId).OnDelete(DeleteBehavior.Cascade);
+            e.HasOne<PeriodoPlanilla>().WithMany().HasForeignKey(x => x.Periodo).OnDelete(DeleteBehavior.Restrict);
+        });
     }
 
     private static void AsistenciaModelo(ModelBuilder b)
