@@ -33,17 +33,32 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
         ValidateLifetime = true, ClockSkew = TimeSpan.FromMinutes(1),
         NameClaimType = ClaimTypes.Name, RoleClaimType = ClaimTypes.Role,
     };
+    // El token solo vale si la cuenta sigue activa y no cambió su sello (contraseña, rol o estado).
+    o.Events = new JwtBearerEvents
+    {
+        OnTokenValidated = async ctx =>
+        {
+            var db = ctx.HttpContext.RequestServices.GetRequiredService<NexoDbContext>();
+            var sub = ctx.Principal?.FindFirstValue("sub");
+            var u = int.TryParse(sub, out var id)
+                ? await db.Usuarios.AsNoTracking().Where(x => x.Id == id).Select(x => new { x.Activo, x.Sello, x.DebeCambiarPassword }).FirstOrDefaultAsync()
+                : null;
+            if (u is null || !u.Activo || u.Sello != ctx.Principal!.FindFirstValue(Claves.Sello)) { ctx.Fail("Sesión no válida."); return; }
+            if (u.DebeCambiarPassword) ((ClaimsIdentity)ctx.Principal!.Identity!).AddClaim(new Claim(Claves.PasswordTemporal, "1"));
+        },
+    };
 });
 builder.Services.AddAuthorizationBuilder()
     .AddPolicy(Politicas.Administrador, p => p.RequireRole("Administrador"))
     .AddPolicy(Politicas.Gestion, p => p.RequireRole("Administrador", "Supervisor"));
 
 // Máximo 10 intentos de inicio de sesión por minuto por IP (además del bloqueo de la cuenta tras 5 fallos).
+var loginPorMinuto = config.GetValue("Seguridad:LoginPorMinuto", 10);
 builder.Services.AddRateLimiter(o =>
 {
     o.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
     o.AddPolicy("login", ctx => RateLimitPartition.GetFixedWindowLimiter(ctx.Connection.RemoteIpAddress?.ToString() ?? "?",
-        _ => new FixedWindowRateLimiterOptions { PermitLimit = 10, Window = TimeSpan.FromMinutes(1) }));
+        _ => new FixedWindowRateLimiterOptions { PermitLimit = loginPorMinuto, Window = TimeSpan.FromMinutes(1) }));
 });
 
 // --- Web -----------------------------------------------------------------------------------------------------------
@@ -88,6 +103,17 @@ if (app.Environment.IsDevelopment())
 app.UseCors();
 app.UseRateLimiter();
 app.UseAuthentication();
+// Con contraseña temporal solo se puede usar /api/auth (para cambiarla).
+app.Use(async (ctx, next) =>
+{
+    if (ctx.User.HasClaim(Claves.PasswordTemporal, "1") && !ctx.Request.Path.StartsWithSegments("/api/auth"))
+    {
+        ctx.Response.StatusCode = StatusCodes.Status403Forbidden;
+        await ctx.Response.WriteAsJsonAsync(new { title = "Debes cambiar tu contraseña temporal antes de continuar.", status = 403, codigo = "password_temporal" });
+        return;
+    }
+    await next();
+});
 app.UseAuthorization();
 app.MapControllers();
 app.MapGet("/api/salud", () => Results.Ok(new { estado = "ok" })).AllowAnonymous();

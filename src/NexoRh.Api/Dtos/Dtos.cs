@@ -3,8 +3,16 @@ namespace NexoRh.Api.Dtos;
 // Las formas siguen los modelos del frontend (src/app/core/models.ts) para no cambiar las pantallas.
 
 public record LoginPeticion(string Correo, string Password);
-public record UsuarioSesion(int Id, string Nombre, string Correo, string Rol, string Perfil, int? ColaboradorId, string Iniciales);
+public record UsuarioSesion(int Id, string Nombre, string Correo, string Rol, string Perfil, int? ColaboradorId, string Iniciales, bool DebeCambiarPassword);
 public record LoginRespuesta(string Token, DateTime Expira, UsuarioSesion Usuario);
+public record CambioPassword(string Actual, string Nueva);
+
+// Administración › Usuarios
+public record UsuarioDto(int Id, string Nombre, string Correo, string Rol, string Perfil, int? ColaboradorId, string? Colaborador,
+    bool Activo, string UltimoAcceso, bool Bloqueado, bool DebeCambiarPassword);
+public record UsuarioGuardar(string Nombre, string Correo, string Rol, int? ColaboradorId);
+public record UsuarioCreado(UsuarioDto Usuario, string PasswordTemporal);
+public record EstadoUsuario(bool Activo);
 
 public class DetalleDto
 {

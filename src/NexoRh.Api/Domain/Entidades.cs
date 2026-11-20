@@ -88,6 +88,10 @@ public class Usuario
     public DateTime? UltimoAcceso { get; set; }
     public int IntentosFallidos { get; set; }
     public DateTime? BloqueadoHasta { get; set; }
+    /// <summary>La contraseña es temporal (creada o restablecida por un administrador): debe cambiarse antes de usar la app.</summary>
+    public bool DebeCambiarPassword { get; set; }
+    /// <summary>Cambia al desactivar, restablecer o cambiar la contraseña o el rol: invalida los tokens emitidos antes.</summary>
+    public string Sello { get; set; } = Guid.NewGuid().ToString("N");
 }
 
 /// <summary>Registro de auditoría ("Historial de cambios").</summary>

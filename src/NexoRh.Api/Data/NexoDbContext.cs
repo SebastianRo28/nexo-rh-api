@@ -62,6 +62,8 @@ public class NexoDbContext(DbContextOptions<NexoDbContext> options) : DbContext(
             e.Property(x => x.Correo).HasMaxLength(120).IsRequired();
             e.HasIndex(x => x.Correo).IsUnique();
             e.Property(x => x.Perfil).HasMaxLength(60);
+            e.Property(x => x.Sello).HasMaxLength(32).IsRequired();
+            e.HasIndex(x => x.ColaboradorId).IsUnique().HasFilter("[ColaboradorId] IS NOT NULL");
             e.Property(x => x.Rol).HasConversion<string>().HasMaxLength(20);
             e.HasOne<Colaborador>().WithMany().HasForeignKey(x => x.ColaboradorId).OnDelete(DeleteBehavior.SetNull);
         });

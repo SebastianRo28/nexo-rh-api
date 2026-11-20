@@ -314,6 +314,9 @@ namespace NexoRh.Api.Data.Migraciones
                         .HasMaxLength(120)
                         .HasColumnType("nvarchar(120)");
 
+                    b.Property<bool>("DebeCambiarPassword")
+                        .HasColumnType("bit");
+
                     b.Property<int>("IntentosFallidos")
                         .HasColumnType("int");
 
@@ -336,12 +339,19 @@ namespace NexoRh.Api.Data.Migraciones
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 
+                    b.Property<string>("Sello")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
                     b.Property<DateTime?>("UltimoAcceso")
                         .HasColumnType("datetime2");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ColaboradorId");
+                    b.HasIndex("ColaboradorId")
+                        .IsUnique()
+                        .HasFilter("[ColaboradorId] IS NOT NULL");
 
                     b.HasIndex("Correo")
                         .IsUnique();

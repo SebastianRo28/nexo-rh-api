@@ -18,6 +18,9 @@ public class JwtOpciones
 public static class Claves
 {
     public const string ColaboradorId = "colaborador_id";
+    public const string Sello = "sello";
+    /// <summary>Lo agrega el servidor al validar el token cuando la contraseña es temporal.</summary>
+    public const string PasswordTemporal = "pwd_temporal";
 }
 
 /// <summary>Políticas por rol.</summary>
@@ -41,6 +44,7 @@ public class TokenService(IOptions<JwtOpciones> opciones)
             new(ClaimTypes.Name, u.Nombre),
             new(ClaimTypes.Email, u.Correo),
             new(ClaimTypes.Role, u.Rol.ToString()),
+            new(Claves.Sello, u.Sello),
         };
         if (u.ColaboradorId is int c) claims.Add(new Claim(Claves.ColaboradorId, c.ToString()));
         var cred = new SigningCredentials(new SymmetricSecurityKey(Encoding.UTF8.GetBytes(o.Clave)), SecurityAlgorithms.HmacSha256);
