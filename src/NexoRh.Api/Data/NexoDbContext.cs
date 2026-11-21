@@ -23,6 +23,26 @@ public class NexoDbContext(DbContextOptions<NexoDbContext> options) : DbContext(
     public DbSet<Denuncia> Denuncias => Set<Denuncia>();
     public DbSet<MensajeDenuncia> MensajesDenuncia => Set<MensajeDenuncia>();
     public DbSet<Publicacion> Publicaciones => Set<Publicacion>();
+    public DbSet<CumplimientoSst> CumplimientosSst => Set<CumplimientoSst>();
+    public DbSet<RequisitoSst> RequisitosSst => Set<RequisitoSst>();
+    public DbSet<AsignacionSst> AsignacionesSst => Set<AsignacionSst>();
+    public DbSet<EvidenciaSst> EvidenciasSst => Set<EvidenciaSst>();
+    public DbSet<ArchivoEvidenciaSst> ArchivosEvidenciaSst => Set<ArchivoEvidenciaSst>();
+    public DbSet<CategoriaActivo> CategoriasActivo => Set<CategoriaActivo>();
+    public DbSet<ProductoActivo> ProductosActivo => Set<ProductoActivo>();
+    public DbSet<Activo> Activos => Set<Activo>();
+    public DbSet<MovimientoActivo> MovimientosActivo => Set<MovimientoActivo>();
+    public DbSet<OrdenActivo> OrdenesActivo => Set<OrdenActivo>();
+    public DbSet<PlantillaDocumento> PlantillasDocumento => Set<PlantillaDocumento>();
+    public DbSet<DocumentoColaborador> Documentos => Set<DocumentoColaborador>();
+    public DbSet<BandaSalarial> Bandas => Set<BandaSalarial>();
+    public DbSet<CompensacionColaborador> Compensaciones => Set<CompensacionColaborador>();
+    public DbSet<CargoMercado> EstudioSalarial => Set<CargoMercado>();
+    public DbSet<Posicion> Posiciones => Set<Posicion>();
+    public DbSet<PlanHeadcount> PlanesHeadcount => Set<PlanHeadcount>();
+    public DbSet<ReporteGuardado> Reportes => Set<ReporteGuardado>();
+    public DbSet<EjecucionReporte> EjecucionesReporte => Set<EjecucionReporte>();
+    public DbSet<CargaImportacion> Cargas => Set<CargaImportacion>();
 
     public DbSet<TipoItem> TiposItem => Set<TipoItem>();
     public DbSet<AsignacionItem> AsignacionesItem => Set<AsignacionItem>();
@@ -140,6 +160,176 @@ public class NexoDbContext(DbContextOptions<NexoDbContext> options) : DbContext(
         RemuneracionesModelo(b);
         WorkflowModelo(b);
         ComunicacionModelo(b);
+        SstModelo(b);
+        AdministracionModelo(b);
+        ReporteriaModelo(b);
+    }
+
+    private static void ReporteriaModelo(ModelBuilder b)
+    {
+        b.Entity<ReporteGuardado>(e =>
+        {
+            e.Property(x => x.Nombre).HasMaxLength(120);
+            e.Property(x => x.Plantilla).HasMaxLength(80);
+            e.Property(x => x.Categoria).HasMaxLength(60);
+            e.Property(x => x.CreadoPor).HasMaxLength(120);
+        });
+        b.Entity<EjecucionReporte>(e =>
+        {
+            e.Property(x => x.Reporte).HasMaxLength(120);
+            e.Property(x => x.Plantilla).HasMaxLength(80);
+            e.Property(x => x.Usuario).HasMaxLength(120);
+            e.HasIndex(x => x.Fecha);
+        });
+        b.Entity<CargaImportacion>(e =>
+        {
+            e.Property(x => x.Importador).HasMaxLength(80);
+            e.Property(x => x.Archivo).HasMaxLength(200);
+            e.Property(x => x.Usuario).HasMaxLength(120);
+            e.Property(x => x.Estado).HasMaxLength(20);
+            e.OwnsMany(x => x.Errores, l => l.ToJson());
+        });
+    }
+
+    private static void AdministracionModelo(ModelBuilder b)
+    {
+        b.Entity<CategoriaActivo>(e => { e.Property(x => x.Nombre).HasMaxLength(60).IsRequired(); e.HasIndex(x => x.Nombre).IsUnique(); });
+        b.Entity<ProductoActivo>(e =>
+        {
+            e.Property(x => x.Nombre).HasMaxLength(100).IsRequired();
+            e.HasIndex(x => x.Nombre).IsUnique();
+            e.Property(x => x.Marca).HasMaxLength(60);
+            e.HasOne<CategoriaActivo>().WithMany().HasForeignKey(x => x.CategoriaId).OnDelete(DeleteBehavior.Restrict);
+        });
+        b.Entity<Activo>(e =>
+        {
+            e.HasKey(x => x.Codigo);
+            e.Property(x => x.Codigo).HasMaxLength(12);
+            e.Property(x => x.Estado).HasMaxLength(15);
+            e.HasOne<ProductoActivo>().WithMany().HasForeignKey(x => x.ProductoId).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne<Colaborador>().WithMany().HasForeignKey(x => x.AsignadoId).OnDelete(DeleteBehavior.SetNull);
+        });
+        b.Entity<MovimientoActivo>(e =>
+        {
+            e.Property(x => x.ActivoCodigo).HasMaxLength(12);
+            e.Property(x => x.Asignado).HasMaxLength(170);
+            e.Property(x => x.Estado).HasMaxLength(15);
+            e.Property(x => x.Comentario).HasMaxLength(300);
+            e.Property(x => x.Admin).HasMaxLength(120);
+            e.HasIndex(x => x.ActivoCodigo);
+            e.HasOne<Activo>().WithMany().HasForeignKey(x => x.ActivoCodigo).OnDelete(DeleteBehavior.Cascade);
+        });
+        b.Entity<OrdenActivo>(e =>
+        {
+            e.Property(x => x.Id).UseIdentityColumn(100, 1);
+            e.Property(x => x.Origen).HasMaxLength(30);
+            e.Property(x => x.Para).HasMaxLength(170);
+            e.Property(x => x.Area).HasMaxLength(80);
+            e.Property(x => x.Cargo).HasMaxLength(80);
+            e.Property(x => x.Solicitante).HasMaxLength(170);
+            e.Property(x => x.Estado).HasMaxLength(12);
+            e.Property(x => x.ActivoCodigo).HasMaxLength(12);
+            e.Property(x => x.Comentario).HasMaxLength(300);
+            e.HasOne<ProductoActivo>().WithMany().HasForeignKey(x => x.ProductoId).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne<Colaborador>().WithMany().HasForeignKey(x => x.ParaId).OnDelete(DeleteBehavior.SetNull);
+        });
+        b.Entity<PlantillaDocumento>(e =>
+        {
+            e.Property(x => x.Nombre).HasMaxLength(120).IsRequired();
+            e.HasIndex(x => x.Nombre).IsUnique();
+            e.Property(x => x.Tipo).HasMaxLength(40);
+            e.Property(x => x.Carpeta).HasMaxLength(80);
+        });
+        b.Entity<DocumentoColaborador>(e =>
+        {
+            e.Property(x => x.Archivo).HasMaxLength(200).IsRequired();
+            e.Property(x => x.Revision).HasMaxLength(2);
+            e.Property(x => x.FirmaColaborador).HasMaxLength(2);
+            e.Property(x => x.FirmaEmpresa).HasMaxLength(2);
+            e.Property(x => x.EliminadoPor).HasMaxLength(120);
+            e.HasIndex(x => x.ColaboradorId);
+            e.HasOne<Colaborador>().WithMany().HasForeignKey(x => x.ColaboradorId).OnDelete(DeleteBehavior.Cascade);
+        });
+        b.Entity<BandaSalarial>(e =>
+        {
+            e.Property(x => x.Cargo).HasMaxLength(80).IsRequired();
+            e.HasIndex(x => x.Cargo).IsUnique();
+            e.Property(x => x.Objetivo).HasPrecision(12, 2);
+            e.Property(x => x.PctMin).HasPrecision(5, 2);
+            e.Property(x => x.PctMax).HasPrecision(5, 2);
+        });
+        b.Entity<CompensacionColaborador>(e =>
+        {
+            e.HasKey(x => x.ColaboradorId);
+            e.Property(x => x.Evaluacion).HasMaxLength(40);
+            e.Property(x => x.CompTeorica).HasPrecision(12, 2);
+            e.Property(x => x.Comentario).HasMaxLength(300);
+            e.HasOne<Colaborador>().WithOne().HasForeignKey<CompensacionColaborador>(x => x.ColaboradorId).OnDelete(DeleteBehavior.Cascade);
+        });
+        b.Entity<CargoMercado>(e =>
+        {
+            e.Property(x => x.Cargo).HasMaxLength(100).IsRequired();
+            e.Property(x => x.Interno).HasMaxLength(80);
+            e.Property(x => x.Descripcion).HasMaxLength(300);
+            e.Property(x => x.Industria).HasMaxLength(60);
+            e.Property(x => x.Tamano).HasMaxLength(40);
+            foreach (var p in new[] { nameof(CargoMercado.P25), nameof(CargoMercado.P50), nameof(CargoMercado.P75), nameof(CargoMercado.P90) }) e.Property(p).HasPrecision(12, 2);
+        });
+        b.Entity<Posicion>(e =>
+        {
+            e.HasKey(x => x.Codigo);
+            e.Property(x => x.Codigo).HasMaxLength(12);
+            e.Property(x => x.Cargo).HasMaxLength(80);
+            e.Property(x => x.Division).HasMaxLength(80);
+            e.Property(x => x.Area).HasMaxLength(80);
+            e.Property(x => x.SubArea).HasMaxLength(80);
+        });
+        b.Entity<PlanHeadcount>(e =>
+        {
+            e.HasKey(x => new { x.Tipo, x.Nombre });
+            e.Property(x => x.Tipo).HasMaxLength(10);
+            e.Property(x => x.Nombre).HasMaxLength(80);
+        });
+    }
+
+    private static void SstModelo(ModelBuilder b)
+    {
+        b.Entity<CumplimientoSst>(e =>
+        {
+            e.Property(x => x.Nombre).HasMaxLength(120).IsRequired();
+            e.HasIndex(x => x.Nombre).IsUnique();
+            e.Property(x => x.Normativa).HasMaxLength(80);
+            e.Property(x => x.Categoria).HasMaxLength(80);
+            e.Property(x => x.Descripcion).HasMaxLength(500);
+        });
+        b.Entity<RequisitoSst>(e =>
+        {
+            e.Property(x => x.Nombre).HasMaxLength(120).IsRequired();
+            e.HasIndex(x => x.Nombre).IsUnique();
+            e.Property(x => x.AplicaA).HasMaxLength(15);
+            e.HasOne<CumplimientoSst>().WithMany().HasForeignKey(x => x.CumplimientoId).OnDelete(DeleteBehavior.Restrict);
+        });
+        b.Entity<AsignacionSst>(e =>
+        {
+            e.Property(x => x.Empresa).HasMaxLength(120);
+            e.HasIndex(x => x.RequisitoId);
+            e.HasOne<RequisitoSst>().WithMany().HasForeignKey(x => x.RequisitoId).OnDelete(DeleteBehavior.Cascade);
+            e.HasOne<Colaborador>().WithMany().HasForeignKey(x => x.ColaboradorId).OnDelete(DeleteBehavior.Cascade);
+        });
+        b.Entity<EvidenciaSst>(e =>
+        {
+            e.Property(x => x.Descripcion).HasMaxLength(500);
+            e.Property(x => x.RegistradaPor).HasMaxLength(120);
+            e.Property(x => x.ArchivoNombre).HasMaxLength(200);
+            e.Property(x => x.ArchivoTipo).HasMaxLength(60);
+            e.HasIndex(x => x.AsignacionId);
+            e.HasOne<AsignacionSst>().WithMany().HasForeignKey(x => x.AsignacionId).OnDelete(DeleteBehavior.Cascade);
+        });
+        b.Entity<ArchivoEvidenciaSst>(e =>
+        {
+            e.HasKey(x => x.EvidenciaId);
+            e.HasOne<EvidenciaSst>().WithOne().HasForeignKey<ArchivoEvidenciaSst>(x => x.EvidenciaId).OnDelete(DeleteBehavior.Cascade);
+        });
     }
 
     private static void ComunicacionModelo(ModelBuilder b)

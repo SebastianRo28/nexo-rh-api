@@ -70,6 +70,7 @@ builder.Services.AddScoped<Alcance>();
 builder.Services.AddSingleton<Genericos>();
 builder.Services.AddScoped<Configuraciones>();
 builder.Services.AddScoped<Planilla>();
+builder.Services.AddScoped<GeneradorReportes>();
 builder.Services.Configure<RelojAsistencia.Opciones>(config.GetSection("Asistencia"));
 builder.Services.AddSingleton<RelojAsistencia>();
 builder.Services.AddProblemDetails();
@@ -100,6 +101,9 @@ if (config.GetValue("BaseDatos:MigrarAlIniciar", app.Environment.IsDevelopment()
     await SemillaCatalogos.CargarAsync(db, scope.ServiceProvider.GetRequiredService<Genericos>());
     await SemillaWorkflow.CargarAsync(db);
     await SemillaComunicacion.CargarAsync(db);
+    await SemillaSst.CargarAsync(db);
+    await SemillaAdministracion.CargarAsync(db);
+    await SemillaReporteria.CargarAsync(db);
 }
 
 app.UseExceptionHandler();

@@ -22,6 +22,32 @@ namespace NexoRh.Api.Data.Migraciones
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("NexoRh.Api.Domain.Activo", b =>
+                {
+                    b.Property<string>("Codigo")
+                        .HasMaxLength(12)
+                        .HasColumnType("nvarchar(12)");
+
+                    b.Property<int?>("AsignadoId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Estado")
+                        .IsRequired()
+                        .HasMaxLength(15)
+                        .HasColumnType("nvarchar(15)");
+
+                    b.Property<int>("ProductoId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Codigo");
+
+                    b.HasIndex("AsignadoId");
+
+                    b.HasIndex("ProductoId");
+
+                    b.ToTable("Activos");
+                });
+
             modelBuilder.Entity("NexoRh.Api.Domain.AprobacionHhee", b =>
                 {
                     b.Property<int>("Id")
@@ -62,6 +88,20 @@ namespace NexoRh.Api.Data.Migraciones
                     b.ToTable("AprobacionesHhee");
                 });
 
+            modelBuilder.Entity("NexoRh.Api.Domain.ArchivoEvidenciaSst", b =>
+                {
+                    b.Property<int>("EvidenciaId")
+                        .HasColumnType("int");
+
+                    b.Property<byte[]>("Contenido")
+                        .IsRequired()
+                        .HasColumnType("varbinary(max)");
+
+                    b.HasKey("EvidenciaId");
+
+                    b.ToTable("ArchivosEvidenciaSst");
+                });
+
             modelBuilder.Entity("NexoRh.Api.Domain.AsignacionItem", b =>
                 {
                     b.Property<int>("Id")
@@ -98,6 +138,39 @@ namespace NexoRh.Api.Data.Migraciones
                     b.HasIndex("TipoItemId");
 
                     b.ToTable("AsignacionesItem");
+                });
+
+            modelBuilder.Entity("NexoRh.Api.Domain.AsignacionSst", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("ColaboradorId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreadaEn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Empresa")
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<bool>("Finalizada")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("RequisitoId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ColaboradorId");
+
+                    b.HasIndex("RequisitoId");
+
+                    b.ToTable("AsignacionesSst");
                 });
 
             modelBuilder.Entity("NexoRh.Api.Domain.AsignacionTurno", b =>
@@ -172,6 +245,42 @@ namespace NexoRh.Api.Data.Migraciones
                     b.HasIndex("ColaboradorId");
 
                     b.ToTable("Ausencias");
+                });
+
+            modelBuilder.Entity("NexoRh.Api.Domain.BandaSalarial", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Activo")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Cargo")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
+
+                    b.Property<decimal>("Objetivo")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("decimal(12,2)");
+
+                    b.Property<decimal>("PctMax")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<decimal>("PctMin")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("decimal(5,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Cargo")
+                        .IsUnique();
+
+                    b.ToTable("Bandas");
                 });
 
             modelBuilder.Entity("NexoRh.Api.Domain.Boleta", b =>
@@ -360,6 +469,45 @@ namespace NexoRh.Api.Data.Migraciones
                     b.ToTable("CambiosTurno");
                 });
 
+            modelBuilder.Entity("NexoRh.Api.Domain.CargaImportacion", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Archivo")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("Estado")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<DateTime>("Fecha")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Importador")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
+
+                    b.Property<int>("Registros")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Usuario")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Cargas");
+                });
+
             modelBuilder.Entity("NexoRh.Api.Domain.Cargo", b =>
                 {
                     b.Property<int>("Id")
@@ -396,6 +544,80 @@ namespace NexoRh.Api.Data.Migraciones
                         .IsUnique();
 
                     b.ToTable("Cargos");
+                });
+
+            modelBuilder.Entity("NexoRh.Api.Domain.CargoMercado", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Cargo")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Descripcion")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<string>("Industria")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("nvarchar(60)");
+
+                    b.Property<string>("Interno")
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
+
+                    b.Property<decimal>("P25")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("decimal(12,2)");
+
+                    b.Property<decimal>("P50")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("decimal(12,2)");
+
+                    b.Property<decimal>("P75")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("decimal(12,2)");
+
+                    b.Property<decimal>("P90")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("decimal(12,2)");
+
+                    b.Property<string>("Tamano")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("EstudioSalarial");
+                });
+
+            modelBuilder.Entity("NexoRh.Api.Domain.CategoriaActivo", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("nvarchar(60)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Nombre")
+                        .IsUnique();
+
+                    b.ToTable("CategoriasActivo");
                 });
 
             modelBuilder.Entity("NexoRh.Api.Domain.Colaborador", b =>
@@ -558,6 +780,36 @@ namespace NexoRh.Api.Data.Migraciones
                     b.ToTable("ComisionesAfp");
                 });
 
+            modelBuilder.Entity("NexoRh.Api.Domain.CompensacionColaborador", b =>
+                {
+                    b.Property<int>("ColaboradorId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("ActualizadaEn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Comentario")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<decimal?>("CompTeorica")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("decimal(12,2)");
+
+                    b.Property<string>("Evaluacion")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<DateOnly?>("UltimaModificacion")
+                        .HasColumnType("date");
+
+                    b.HasKey("ColaboradorId");
+
+                    b.ToTable("Compensaciones");
+                });
+
             modelBuilder.Entity("NexoRh.Api.Domain.Competencia", b =>
                 {
                     b.Property<int>("Id")
@@ -602,6 +854,45 @@ namespace NexoRh.Api.Data.Migraciones
                     b.HasKey("Clave");
 
                     b.ToTable("Configuraciones");
+                });
+
+            modelBuilder.Entity("NexoRh.Api.Domain.CumplimientoSst", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("ActualizadoEn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Categoria")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
+
+                    b.Property<string>("Descripcion")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<string>("Normativa")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Nombre")
+                        .IsUnique();
+
+                    b.ToTable("CumplimientosSst");
                 });
 
             modelBuilder.Entity("NexoRh.Api.Domain.Denuncia", b =>
@@ -666,6 +957,97 @@ namespace NexoRh.Api.Data.Migraciones
                     b.ToTable("Denuncias");
                 });
 
+            modelBuilder.Entity("NexoRh.Api.Domain.DocumentoColaborador", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Archivo")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<int>("ColaboradorId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("EliminadoEn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("EliminadoPor")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<DateOnly>("Fecha")
+                        .HasColumnType("date");
+
+                    b.Property<string>("FirmaColaborador")
+                        .IsRequired()
+                        .HasMaxLength(2)
+                        .HasColumnType("nvarchar(2)");
+
+                    b.Property<string>("FirmaEmpresa")
+                        .IsRequired()
+                        .HasMaxLength(2)
+                        .HasColumnType("nvarchar(2)");
+
+                    b.Property<bool>("Oculto")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Revision")
+                        .IsRequired()
+                        .HasMaxLength(2)
+                        .HasColumnType("nvarchar(2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ColaboradorId");
+
+                    b.ToTable("Documentos");
+                });
+
+            modelBuilder.Entity("NexoRh.Api.Domain.EjecucionReporte", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("Fecha")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Filas")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("Periodo")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Plantilla")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
+
+                    b.Property<string>("Reporte")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<string>("Usuario")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Fecha");
+
+                    b.ToTable("EjecucionesReporte");
+                });
+
             modelBuilder.Entity("NexoRh.Api.Domain.Encuesta", b =>
                 {
                     b.Property<int>("Id")
@@ -716,6 +1098,54 @@ namespace NexoRh.Api.Data.Migraciones
                     b.HasKey("Id");
 
                     b.ToTable("Encuestas");
+                });
+
+            modelBuilder.Entity("NexoRh.Api.Domain.EvidenciaSst", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ArchivoNombre")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<int?>("ArchivoTamano")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ArchivoTipo")
+                        .HasMaxLength(60)
+                        .HasColumnType("nvarchar(60)");
+
+                    b.Property<int>("AsignacionId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Descripcion")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateOnly>("Fecha")
+                        .HasColumnType("date");
+
+                    b.Property<DateTime>("RegistradaEn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("RegistradaPor")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<DateOnly?>("Vence")
+                        .HasColumnType("date");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AsignacionId");
+
+                    b.ToTable("EvidenciasSst");
                 });
 
             modelBuilder.Entity("NexoRh.Api.Domain.FamiliaCargo", b =>
@@ -1000,6 +1430,49 @@ namespace NexoRh.Api.Data.Migraciones
                     b.ToTable("MensajesDenuncia");
                 });
 
+            modelBuilder.Entity("NexoRh.Api.Domain.MovimientoActivo", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ActivoCodigo")
+                        .IsRequired()
+                        .HasMaxLength(12)
+                        .HasColumnType("nvarchar(12)");
+
+                    b.Property<string>("Admin")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<string>("Asignado")
+                        .IsRequired()
+                        .HasMaxLength(170)
+                        .HasColumnType("nvarchar(170)");
+
+                    b.Property<string>("Comentario")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<string>("Estado")
+                        .IsRequired()
+                        .HasMaxLength(15)
+                        .HasColumnType("nvarchar(15)");
+
+                    b.Property<DateTime>("Fecha")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ActivoCodigo");
+
+                    b.ToTable("MovimientosActivo");
+                });
+
             modelBuilder.Entity("NexoRh.Api.Domain.NotaSupervisor", b =>
                 {
                     b.Property<int>("Id")
@@ -1029,6 +1502,74 @@ namespace NexoRh.Api.Data.Migraciones
                     b.HasIndex("ColaboradorId");
 
                     b.ToTable("NotasSupervisor");
+                });
+
+            modelBuilder.Entity("NexoRh.Api.Domain.OrdenActivo", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 100L);
+
+                    b.Property<string>("ActivoCodigo")
+                        .HasMaxLength(12)
+                        .HasColumnType("nvarchar(12)");
+
+                    b.Property<string>("Area")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
+
+                    b.Property<DateOnly>("AsignarEl")
+                        .HasColumnType("date");
+
+                    b.Property<string>("Cargo")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
+
+                    b.Property<string>("Comentario")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<string>("Estado")
+                        .IsRequired()
+                        .HasMaxLength(12)
+                        .HasColumnType("nvarchar(12)");
+
+                    b.Property<string>("Origen")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<string>("Para")
+                        .IsRequired()
+                        .HasMaxLength(170)
+                        .HasColumnType("nvarchar(170)");
+
+                    b.Property<int?>("ParaId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ProductoId")
+                        .HasColumnType("int");
+
+                    b.Property<DateOnly>("Solicitada")
+                        .HasColumnType("date");
+
+                    b.Property<string>("Solicitante")
+                        .IsRequired()
+                        .HasMaxLength(170)
+                        .HasColumnType("nvarchar(170)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ParaId");
+
+                    b.HasIndex("ProductoId");
+
+                    b.ToTable("OrdenesActivo");
                 });
 
             modelBuilder.Entity("NexoRh.Api.Domain.ParametroRem", b =>
@@ -1158,6 +1699,58 @@ namespace NexoRh.Api.Data.Migraciones
                     b.ToTable("Periodos");
                 });
 
+            modelBuilder.Entity("NexoRh.Api.Domain.PlanHeadcount", b =>
+                {
+                    b.Property<string>("Tipo")
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<string>("Nombre")
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
+
+                    b.Property<int>("Cantidad")
+                        .HasColumnType("int");
+
+                    b.HasKey("Tipo", "Nombre");
+
+                    b.ToTable("PlanesHeadcount");
+                });
+
+            modelBuilder.Entity("NexoRh.Api.Domain.PlantillaDocumento", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Activa")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Carpeta")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<string>("Tipo")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Nombre")
+                        .IsUnique();
+
+                    b.ToTable("PlantillasDocumento");
+                });
+
             modelBuilder.Entity("NexoRh.Api.Domain.PlantillaWorkflow", b =>
                 {
                     b.Property<int>("Id")
@@ -1195,6 +1788,77 @@ namespace NexoRh.Api.Data.Migraciones
                         .IsUnique();
 
                     b.ToTable("PlantillasWorkflow");
+                });
+
+            modelBuilder.Entity("NexoRh.Api.Domain.Posicion", b =>
+                {
+                    b.Property<string>("Codigo")
+                        .HasMaxLength(12)
+                        .HasColumnType("nvarchar(12)");
+
+                    b.Property<string>("Area")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
+
+                    b.Property<string>("Cargo")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
+
+                    b.Property<string>("Division")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
+
+                    b.Property<DateOnly>("Ingreso")
+                        .HasColumnType("date");
+
+                    b.Property<string>("SubArea")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
+
+                    b.Property<DateOnly?>("Termino")
+                        .HasColumnType("date");
+
+                    b.Property<bool>("Vigente")
+                        .HasColumnType("bit");
+
+                    b.HasKey("Codigo");
+
+                    b.ToTable("Posiciones");
+                });
+
+            modelBuilder.Entity("NexoRh.Api.Domain.ProductoActivo", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CategoriaId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Marca")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("nvarchar(60)");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CategoriaId");
+
+                    b.HasIndex("Nombre")
+                        .IsUnique();
+
+                    b.ToTable("ProductosActivo");
                 });
 
             modelBuilder.Entity("NexoRh.Api.Domain.Publicacion", b =>
@@ -1416,6 +2080,79 @@ namespace NexoRh.Api.Data.Migraciones
                     b.HasIndex("Fecha");
 
                     b.ToTable("Reconocimientos");
+                });
+
+            modelBuilder.Entity("NexoRh.Api.Domain.ReporteGuardado", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Categoria")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("nvarchar(60)");
+
+                    b.Property<DateOnly>("Creado")
+                        .HasColumnType("date");
+
+                    b.Property<string>("CreadoPor")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<string>("Plantilla")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Reportes");
+                });
+
+            modelBuilder.Entity("NexoRh.Api.Domain.RequisitoSst", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("ActualizadoEn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("AplicaA")
+                        .IsRequired()
+                        .HasMaxLength(15)
+                        .HasColumnType("nvarchar(15)");
+
+                    b.Property<int>("CumplimientoId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<int?>("VigenciaMeses")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CumplimientoId");
+
+                    b.HasIndex("Nombre")
+                        .IsUnique();
+
+                    b.ToTable("RequisitosSst");
                 });
 
             modelBuilder.Entity("NexoRh.Api.Domain.RespuestaEncuesta", b =>
@@ -1835,6 +2572,20 @@ namespace NexoRh.Api.Data.Migraciones
                     b.ToTable("Vacaciones");
                 });
 
+            modelBuilder.Entity("NexoRh.Api.Domain.Activo", b =>
+                {
+                    b.HasOne("NexoRh.Api.Domain.Colaborador", null)
+                        .WithMany()
+                        .HasForeignKey("AsignadoId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("NexoRh.Api.Domain.ProductoActivo", null)
+                        .WithMany()
+                        .HasForeignKey("ProductoId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("NexoRh.Api.Domain.AprobacionHhee", b =>
                 {
                     b.HasOne("NexoRh.Api.Domain.Colaborador", null)
@@ -1871,6 +2622,15 @@ namespace NexoRh.Api.Data.Migraciones
                     b.Navigation("Lineas");
                 });
 
+            modelBuilder.Entity("NexoRh.Api.Domain.ArchivoEvidenciaSst", b =>
+                {
+                    b.HasOne("NexoRh.Api.Domain.EvidenciaSst", null)
+                        .WithOne()
+                        .HasForeignKey("NexoRh.Api.Domain.ArchivoEvidenciaSst", "EvidenciaId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("NexoRh.Api.Domain.AsignacionItem", b =>
                 {
                     b.HasOne("NexoRh.Api.Domain.Colaborador", null)
@@ -1883,6 +2643,20 @@ namespace NexoRh.Api.Data.Migraciones
                         .WithMany()
                         .HasForeignKey("TipoItemId")
                         .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("NexoRh.Api.Domain.AsignacionSst", b =>
+                {
+                    b.HasOne("NexoRh.Api.Domain.Colaborador", null)
+                        .WithMany()
+                        .HasForeignKey("ColaboradorId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("NexoRh.Api.Domain.RequisitoSst", null)
+                        .WithMany()
+                        .HasForeignKey("RequisitoId")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
@@ -1979,6 +2753,41 @@ namespace NexoRh.Api.Data.Migraciones
                         .OnDelete(DeleteBehavior.Restrict);
                 });
 
+            modelBuilder.Entity("NexoRh.Api.Domain.CargaImportacion", b =>
+                {
+                    b.OwnsMany("NexoRh.Api.Domain.ErrorCarga", "Errores", b1 =>
+                        {
+                            b1.Property<int>("CargaImportacionId")
+                                .HasColumnType("int");
+
+                            b1.Property<int>("Id")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("int");
+
+                            b1.Property<string>("Campo")
+                                .IsRequired()
+                                .HasColumnType("nvarchar(max)");
+
+                            b1.Property<int>("Fila")
+                                .HasColumnType("int");
+
+                            b1.Property<string>("Mensaje")
+                                .IsRequired()
+                                .HasColumnType("nvarchar(max)");
+
+                            b1.HasKey("CargaImportacionId", "Id");
+
+                            b1.ToTable("Cargas");
+
+                            b1.ToJson("Errores");
+
+                            b1.WithOwner()
+                                .HasForeignKey("CargaImportacionId");
+                        });
+
+                    b.Navigation("Errores");
+                });
+
             modelBuilder.Entity("NexoRh.Api.Domain.Colaborador", b =>
                 {
                     b.HasOne("NexoRh.Api.Domain.Colaborador", null)
@@ -1990,6 +2799,24 @@ namespace NexoRh.Api.Data.Migraciones
                         .WithMany()
                         .HasForeignKey("RecintoId")
                         .OnDelete(DeleteBehavior.Restrict);
+                });
+
+            modelBuilder.Entity("NexoRh.Api.Domain.CompensacionColaborador", b =>
+                {
+                    b.HasOne("NexoRh.Api.Domain.Colaborador", null)
+                        .WithOne()
+                        .HasForeignKey("NexoRh.Api.Domain.CompensacionColaborador", "ColaboradorId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("NexoRh.Api.Domain.DocumentoColaborador", b =>
+                {
+                    b.HasOne("NexoRh.Api.Domain.Colaborador", null)
+                        .WithMany()
+                        .HasForeignKey("ColaboradorId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("NexoRh.Api.Domain.Encuesta", b =>
@@ -2033,6 +2860,15 @@ namespace NexoRh.Api.Data.Migraciones
                         });
 
                     b.Navigation("Preguntas");
+                });
+
+            modelBuilder.Entity("NexoRh.Api.Domain.EvidenciaSst", b =>
+                {
+                    b.HasOne("NexoRh.Api.Domain.AsignacionSst", null)
+                        .WithMany()
+                        .HasForeignKey("AsignacionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("NexoRh.Api.Domain.LicenciaMedica", b =>
@@ -2088,12 +2924,35 @@ namespace NexoRh.Api.Data.Migraciones
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("NexoRh.Api.Domain.MovimientoActivo", b =>
+                {
+                    b.HasOne("NexoRh.Api.Domain.Activo", null)
+                        .WithMany()
+                        .HasForeignKey("ActivoCodigo")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("NexoRh.Api.Domain.NotaSupervisor", b =>
                 {
                     b.HasOne("NexoRh.Api.Domain.Colaborador", null)
                         .WithMany()
                         .HasForeignKey("ColaboradorId")
                         .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("NexoRh.Api.Domain.OrdenActivo", b =>
+                {
+                    b.HasOne("NexoRh.Api.Domain.Colaborador", null)
+                        .WithMany()
+                        .HasForeignKey("ParaId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("NexoRh.Api.Domain.ProductoActivo", null)
+                        .WithMany()
+                        .HasForeignKey("ProductoId")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });
 
@@ -2112,12 +2971,30 @@ namespace NexoRh.Api.Data.Migraciones
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("NexoRh.Api.Domain.ProductoActivo", b =>
+                {
+                    b.HasOne("NexoRh.Api.Domain.CategoriaActivo", null)
+                        .WithMany()
+                        .HasForeignKey("CategoriaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("NexoRh.Api.Domain.RecargoDomingo", b =>
                 {
                     b.HasOne("NexoRh.Api.Domain.Colaborador", null)
                         .WithMany()
                         .HasForeignKey("ColaboradorId")
                         .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("NexoRh.Api.Domain.RequisitoSst", b =>
+                {
+                    b.HasOne("NexoRh.Api.Domain.CumplimientoSst", null)
+                        .WithMany()
+                        .HasForeignKey("CumplimientoId")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });
 
