@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using NexoRh.Api.Auth;
+using NexoRh.Api.Catalogo;
 using NexoRh.Api.Data;
 using NexoRh.Api.Domain;
 using NexoRh.Api.Dtos;
@@ -11,6 +13,7 @@ namespace NexoRh.Api.Controllers;
 /// <summary>Boletas de pago. Administradores: todas (también los borradores del período abierto). Los demás: solo sus boletas definitivas.</summary>
 [ApiController]
 [Route("api/remuneraciones/boletas")]
+[RequiereModulo(Modulos.Payroll)]
 [Authorize]
 public class BoletasController(NexoDbContext db, Alcance alcance) : ControllerBase
 {

@@ -47,7 +47,12 @@ public class CatalogosController(NexoDbContext db, Genericos genericos, Auditori
 
     [HttpPost("{clave}")]
     [Authorize(Policy = Politicas.Administrador)]
-    public async Task<ActionResult<JsonObject>> Crear(string clave, JsonElement fila) => await Guardar(clave, null, fila);
+    public async Task<ActionResult<JsonObject>> Crear(string clave, JsonElement fila, [FromServices] LimitesPlan limites)
+    {
+        // Límite del plan: número de empresas (razones sociales).
+        if (clave == "empresas" && await limites.VerificarAsync(LimitesPlan.Empresas) is { } limite) return limite;
+        return await Guardar(clave, null, fila);
+    }
 
     [HttpPut("{clave}/{id:int}")]
     [Authorize(Policy = Politicas.Administrador)]

@@ -11,9 +11,9 @@ namespace NexoRh.Api.Data;
 /// </summary>
 public static class SemillaRemuneraciones
 {
-    public static async Task CargarAsync(NexoDbContext db)
+    /// <summary>Catálogo de ítems y parámetros legales de referencia: los necesita cualquier instalación (también producción).</summary>
+    public static async Task CargarBaseAsync(NexoDbContext db)
     {
-        if (!await db.Colaboradores.AnyAsync()) return;
         if (!await db.TiposItem.AnyAsync())
         {
             db.TiposItem.AddRange(Tipos());
@@ -28,7 +28,16 @@ public static class SemillaRemuneraciones
                 new TramoRenta { Desde = 20, Hasta = 35, TasaPct = 17 }, new TramoRenta { Desde = 35, Hasta = 45, TasaPct = 20 },
                 new TramoRenta { Desde = 45, Hasta = null, TasaPct = 30 });
             await db.SaveChangesAsync();
+        }
+    }
 
+    /// <summary>Datos de ejemplo: ítems asignados, régimen pensionario y planillas de enero y febrero de 2026.</summary>
+    public static async Task CargarAsync(NexoDbContext db)
+    {
+        if (!await db.Colaboradores.AnyAsync()) return;
+        await CargarBaseAsync(db);
+        if (!await db.AsignacionesItem.AnyAsync())
+        {
             AsignacionItem A(int c, int tipo, decimal monto, int desde, int? hasta = null, string obs = "") =>
                 new() { ColaboradorId = c, TipoItemId = tipo, Monto = monto, Desde = desde, Hasta = hasta, Observacion = obs };
             var existentes = (await db.Colaboradores.Select(c => c.Id).ToListAsync()).ToHashSet();

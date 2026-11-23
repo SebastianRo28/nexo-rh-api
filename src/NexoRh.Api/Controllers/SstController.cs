@@ -2,6 +2,7 @@ using System.Text.Json.Nodes;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using NexoRh.Api.Catalogo;
 using NexoRh.Api.Auth;
 using NexoRh.Api.Data;
 using NexoRh.Api.Domain;
@@ -30,6 +31,7 @@ public record Asignar(List<int>? ColaboradorIds, List<string>? Empresas, bool To
 /// </summary>
 [ApiController]
 [Route("api/sst")]
+[RequiereModulo(Modulos.Sst)]
 [Authorize(Policy = Politicas.Administrador)]
 public class SstController(NexoDbContext db, Auditoria auditoria, RelojAsistencia reloj) : ControllerBase
 {
@@ -154,7 +156,7 @@ public class SstController(NexoDbContext db, Auditoria auditoria, RelojAsistenci
     [HttpDelete("cumplimientos/{id:int}")]
     public async Task<IActionResult> EliminarCumplimiento(int id)
     {
-        var c = await db.CumplimientosSst.FindAsync(id);
+        var c = await db.CumplimientosSst.Buscar(id);
         if (c is null) return NotFound();
         if (await db.RequisitosSst.AnyAsync(r => r.CumplimientoId == id)) return Error("id", $"“{c.Nombre}” tiene requisitos: elimínalos primero.");
         db.CumplimientosSst.Remove(c);
@@ -187,7 +189,7 @@ public class SstController(NexoDbContext db, Auditoria auditoria, RelojAsistenci
     [HttpDelete("requisitos/{id:int}")]
     public async Task<IActionResult> EliminarRequisito(int id)
     {
-        var r = await db.RequisitosSst.FindAsync(id);
+        var r = await db.RequisitosSst.Buscar(id);
         if (r is null) return NotFound();
         var asig = await db.AsignacionesSst.Where(a => a.RequisitoId == id).Select(a => a.Id).ToListAsync();
         if (await db.EvidenciasSst.AnyAsync(e => asig.Contains(e.AsignacionId))) return Error("id", $"“{r.Nombre}” ya tiene evidencias registradas: finaliza sus asignaciones en lugar de eliminarlo.");
@@ -200,7 +202,7 @@ public class SstController(NexoDbContext db, Auditoria auditoria, RelojAsistenci
     [HttpPost("requisitos/{id:int}/asignaciones")]
     public async Task<IActionResult> AsignarRequisito(int id, Asignar p)
     {
-        var r = await db.RequisitosSst.FindAsync(id);
+        var r = await db.RequisitosSst.Buscar(id);
         if (r is null) return NotFound();
         if (await AgregarAsignaciones(r, p.Todos, p.ColaboradorIds, p.Empresas) is { } err) return err;
         await db.SaveChangesAsync();
@@ -230,12 +232,12 @@ public class SstController(NexoDbContext db, Auditoria auditoria, RelojAsistenci
     [HttpPost("asignaciones/{id:int}/finalizar")]
     public async Task<IActionResult> Finalizar(int id)
     {
-        var a = await db.AsignacionesSst.FindAsync(id);
+        var a = await db.AsignacionesSst.Buscar(id);
         if (a is null) return NotFound();
         if (a.Finalizada) return Error("id", "La asignación ya está finalizada.");
         a.Finalizada = true;
-        var r = await db.RequisitosSst.FindAsync(a.RequisitoId);
-        var c = a.ColaboradorId is { } cid ? await db.Colaboradores.FindAsync(cid) : null;
+        var r = await db.RequisitosSst.Buscar(a.RequisitoId);
+        var c = a.ColaboradorId is { } cid ? await db.Colaboradores.Buscar(cid) : null;
         auditoria.Registrar($"Asignación SST · {r!.Nombre}", "Modificar", c, "estado", "Activa", "Finalizada");
         await db.SaveChangesAsync();
         return NoContent();
@@ -246,10 +248,10 @@ public class SstController(NexoDbContext db, Auditoria auditoria, RelojAsistenci
     [RequestSizeLimit(MaxArchivo + 64 * 1024)]
     public async Task<ActionResult<AsignacionDetalle>> Evidencia(int id, [FromForm] string? fecha, [FromForm] string? descripcion, IFormFile? archivo)
     {
-        var a = await db.AsignacionesSst.FindAsync(id);
+        var a = await db.AsignacionesSst.Buscar(id);
         if (a is null) return NotFound();
         if (a.Finalizada) return Error("id", "La asignación está finalizada.");
-        var r = (await db.RequisitosSst.FindAsync(a.RequisitoId))!;
+        var r = (await db.RequisitosSst.Buscar(a.RequisitoId))!;
         if (!Fechas.TryLeer(fecha, out var f)) return Error("fecha", "La fecha debe tener el formato DD/MM/AAAA.");
         if (f > reloj.Hoy) return Error("fecha", "La fecha de la evidencia no puede ser futura.");
         var desc = Corto(descripcion, 500);
@@ -275,7 +277,7 @@ public class SstController(NexoDbContext db, Auditoria auditoria, RelojAsistenci
         db.EvidenciasSst.Add(e);
         await db.SaveChangesAsync();
         if (contenido is not null) db.ArchivosEvidenciaSst.Add(new ArchivoEvidenciaSst { EvidenciaId = e.Id, Contenido = contenido });
-        var c = a.ColaboradorId is { } cid ? await db.Colaboradores.FindAsync(cid) : null;
+        var c = a.ColaboradorId is { } cid ? await db.Colaboradores.Buscar(cid) : null;
         auditoria.Registrar($"Evidencia SST · {r.Nombre}", "Crear", c, actual: $"{desc} · {Fechas.Texto(f)}{(e.Vence is { } v ? $" · vence {Fechas.Texto(v)}" : "")}{(contenido is null ? "" : " · con archivo")}");
         await db.SaveChangesAsync();
         return await Asignacion(id);

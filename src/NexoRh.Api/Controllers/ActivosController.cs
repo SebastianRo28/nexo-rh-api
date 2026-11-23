@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using NexoRh.Api.Catalogo;
 using NexoRh.Api.Auth;
 using NexoRh.Api.Data;
 using NexoRh.Api.Domain;
@@ -30,6 +31,7 @@ public record ProductoNuevo(string? Nombre, int CategoriaId, string? Marca);
 /// </summary>
 [ApiController]
 [Route("api/activos")]
+[RequiereModulo(Modulos.Assets)]
 [Authorize(Policy = Politicas.Administrador)]
 public class ActivosController(NexoDbContext db, Auditoria auditoria, RelojAsistencia reloj) : ControllerBase
 {
@@ -64,13 +66,13 @@ public class ActivosController(NexoDbContext db, Auditoria auditoria, RelojAsist
     [HttpPut("{codigo}")]
     public async Task<IActionResult> Cambiar(string codigo, CambioActivo p)
     {
-        var a = await db.Activos.FindAsync(codigo);
+        var a = await db.Activos.Buscar(codigo);
         if (a is null) return NotFound();
         if (!Estados.Contains(p.Estado)) return Error("estado", "Estado no válido.");
         Colaborador? c = null;
         if (p.Estado == "Asignado")
         {
-            if (p.AsignadoId is not { } id || (c = await db.Colaboradores.FindAsync(id)) is null) return Error("asignadoId", "Elige al colaborador a quien se asigna.");
+            if (p.AsignadoId is not { } id || (c = await db.Colaboradores.Buscar(id)) is null) return Error("asignadoId", "Elige al colaborador a quien se asigna.");
         }
         var comentario = Corto(p.Comentario, 300);
         await Mover(a, p.Estado!, c, comentario.Length > 0 ? comentario : "—");
@@ -114,7 +116,7 @@ public class ActivosController(NexoDbContext db, Auditoria auditoria, RelojAsist
     public async Task<ActionResult<int>> CrearOrden(OrdenNueva p)
     {
         if (!await db.ProductosActivo.AnyAsync(x => x.Id == p.ProductoId)) return Error("productoId", "Elige el producto.");
-        var c = await db.Colaboradores.FindAsync(p.ParaId);
+        var c = await db.Colaboradores.Buscar(p.ParaId);
         if (c is null) return Error("paraId", "Elige al colaborador.");
         if (!Fechas.TryLeer(p.AsignarEl, out var f)) return Error("asignarEl", "La fecha debe tener el formato DD/MM/AAAA.");
         var o = new OrdenActivo
@@ -133,17 +135,17 @@ public class ActivosController(NexoDbContext db, Auditoria auditoria, RelojAsist
     [HttpPost("ordenes/{id:int}/asignar")]
     public async Task<ActionResult<OrdenAtendida>> AtenderOrden(int id, AsignarOrden p)
     {
-        var o = await db.OrdenesActivo.FindAsync(id);
+        var o = await db.OrdenesActivo.Buscar(id);
         if (o is null) return NotFound();
         if (o.Estado != "Pendiente") return Error("estado", $"La orden ya está {o.Estado.ToLowerInvariant()}.");
-        var c = o.ParaId is { } pid ? await db.Colaboradores.FindAsync(pid) : null;
+        var c = o.ParaId is { } pid ? await db.Colaboradores.Buscar(pid) : null;
         if (c is null) return Error("paraId", $"{o.Para} aún no está registrado como colaborador: créalo antes de entregarle el activo.");
         var unidad = p.ActivoCodigo is { Length: > 0 } cod
             ? await db.Activos.FirstOrDefaultAsync(a => a.Codigo == cod && a.ProductoId == o.ProductoId && a.Estado == "Disponible")
             : await db.Activos.Where(a => a.ProductoId == o.ProductoId && a.Estado == "Disponible").OrderBy(a => a.Codigo).FirstOrDefaultAsync();
         if (unidad is null)
         {
-            var prod = await db.ProductosActivo.FindAsync(o.ProductoId);
+            var prod = await db.ProductosActivo.Buscar(o.ProductoId);
             return Error("activoCodigo", $"No hay unidades disponibles de “{prod?.Nombre}” en el inventario. La orden {o.Id} sigue pendiente.");
         }
         await Mover(unidad, "Asignado", c, $"Orden {o.Id} atendida.");
@@ -157,14 +159,14 @@ public class ActivosController(NexoDbContext db, Auditoria auditoria, RelojAsist
     [HttpPost("ordenes/{id:int}/rechazar")]
     public async Task<IActionResult> RechazarOrden(int id, RechazarOrden p)
     {
-        var o = await db.OrdenesActivo.FindAsync(id);
+        var o = await db.OrdenesActivo.Buscar(id);
         if (o is null) return NotFound();
         if (o.Estado != "Pendiente") return Error("estado", $"La orden ya está {o.Estado.ToLowerInvariant()}.");
         var comentario = Corto(p.Comentario, 300);
         if (comentario.Length == 0) return Error("comentario", "Indica el motivo del rechazo.");
         o.Estado = "Rechazada";
         o.Comentario = comentario;
-        var c = o.ParaId is { } pid ? await db.Colaboradores.FindAsync(pid) : null;
+        var c = o.ParaId is { } pid ? await db.Colaboradores.Buscar(pid) : null;
         auditoria.Registrar($"Orden de activo #{o.Id}", "Modificar", c, "estado", "Pendiente", $"Rechazada · {comentario}");
         await db.SaveChangesAsync();
         return NoContent();
@@ -184,7 +186,7 @@ public class ActivosController(NexoDbContext db, Auditoria auditoria, RelojAsist
         if (await db.CategoriasActivo.AnyAsync(c => c.Nombre == nombre && c.Id != (id ?? 0))) return Error("nombre", "Ya existe una categoría con ese nombre.");
         if (id is { } i)
         {
-            var c = await db.CategoriasActivo.FindAsync(i);
+            var c = await db.CategoriasActivo.Buscar(i);
             if (c is null) return NotFound();
             auditoria.Registrar($"Categoría de activos · {c.Nombre}", "Modificar", propiedad: "nombre", anterior: c.Nombre, actual: nombre);
             c.Nombre = nombre;
@@ -201,7 +203,7 @@ public class ActivosController(NexoDbContext db, Auditoria auditoria, RelojAsist
     [HttpDelete("categorias/{id:int}")]
     public async Task<IActionResult> EliminarCategoria(int id)
     {
-        var c = await db.CategoriasActivo.FindAsync(id);
+        var c = await db.CategoriasActivo.Buscar(id);
         if (c is null) return NotFound();
         var n = await db.ProductosActivo.CountAsync(p => p.CategoriaId == id);
         if (n > 0) return Error("id", $"No se puede eliminar “{c.Nombre}”: tiene {n} producto(s).");
@@ -227,7 +229,7 @@ public class ActivosController(NexoDbContext db, Auditoria auditoria, RelojAsist
     [HttpDelete("productos/{id:int}")]
     public async Task<IActionResult> EliminarProducto(int id)
     {
-        var p = await db.ProductosActivo.FindAsync(id);
+        var p = await db.ProductosActivo.Buscar(id);
         if (p is null) return NotFound();
         var n = await db.Activos.CountAsync(a => a.ProductoId == id);
         if (n > 0) return Error("id", $"No se puede eliminar “{p.Nombre}”: tiene {n} activo(s) en el inventario.");

@@ -235,7 +235,7 @@ public class Planilla(NexoDbContext db)
     /// <summary>Recalcula y reemplaza las boletas (borrador) del período abierto.</summary>
     public async Task<List<Boleta>> ProcesarAsync(int periodo, string usuario)
     {
-        var p = await db.Periodos.FindAsync(periodo) ?? throw new InvalidOperationException("El período no existe.");
+        var p = await db.Periodos.Buscar(periodo) ?? throw new InvalidOperationException("El período no existe.");
         if (p.Cerrado) throw new InvalidOperationException("El período está cerrado.");
         var nuevas = await CalcularAsync(periodo);
         db.Boletas.RemoveRange(db.Boletas.Where(b => b.Periodo == periodo));
@@ -251,12 +251,12 @@ public class Planilla(NexoDbContext db)
     {
         var boletas = await ProcesarAsync(periodo, usuario);
         foreach (var b in boletas) b.Definitiva = true;
-        var p = (await db.Periodos.FindAsync(periodo))!;
+        var p = (await db.Periodos.Buscar(periodo))!;
         p.Cerrado = true;
         p.CerradoEn = DateTime.UtcNow;
         p.CerradoPor = usuario;
         var sig = Siguiente(periodo);
-        if (await db.Periodos.FindAsync(sig) is null) db.Periodos.Add(new PeriodoPlanilla { Id = sig });
+        if (await db.Periodos.Buscar(sig) is null) db.Periodos.Add(new PeriodoPlanilla { Id = sig });
         await db.SaveChangesAsync();
         return boletas;
     }

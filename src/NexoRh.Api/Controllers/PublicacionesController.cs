@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using NexoRh.Api.Catalogo;
 using NexoRh.Api.Auth;
 using NexoRh.Api.Data;
 using NexoRh.Api.Domain;
@@ -18,6 +19,7 @@ public record PublicacionGuardar(string? Titulo, string? Texto, string? Autor, b
 /// </summary>
 [ApiController]
 [Route("api/publicaciones")]
+[RequiereModulo(Modulos.Comms)]
 [Authorize]
 public class PublicacionesController(NexoDbContext db, Auditoria auditoria, RelojAsistencia reloj) : ControllerBase
 {
@@ -57,7 +59,7 @@ public class PublicacionesController(NexoDbContext db, Auditoria auditoria, Relo
     private async Task<ActionResult<PublicacionDto>> Guardar(int? id, PublicacionGuardar g)
     {
         Publicacion? p = null;
-        if (id is { } i && (p = await db.Publicaciones.FindAsync(i)) is null) return NotFound();
+        if (id is { } i && (p = await db.Publicaciones.Buscar(i)) is null) return NotFound();
         var titulo = (g.Titulo ?? "").Trim();
         var texto = (g.Texto ?? "").Trim();
         if (titulo.Length is 0 or > 150) return Error("titulo", "Ingresa el título (máximo 150 caracteres).");
@@ -95,7 +97,7 @@ public class PublicacionesController(NexoDbContext db, Auditoria auditoria, Relo
     [Authorize(Policy = Politicas.Administrador)]
     public async Task<IActionResult> Eliminar(int id)
     {
-        var p = await db.Publicaciones.FindAsync(id);
+        var p = await db.Publicaciones.Buscar(id);
         if (p is null) return NotFound();
         db.Publicaciones.Remove(p);
         auditoria.Registrar($"Publicación #{p.Id}", "Eliminar", anterior: p.Titulo);

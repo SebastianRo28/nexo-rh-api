@@ -2,14 +2,16 @@ namespace NexoRh.Api.Domain;
 
 // Administrativo: Gestión de Activos, Documentos, Compensaciones y Headcount.
 
-public class CategoriaActivo
+public class CategoriaActivo : IEntidadTenant
 {
+    public Guid TenantId { get; set; }
     public int Id { get; set; }
     public string Nombre { get; set; } = "";
 }
 
-public class ProductoActivo
+public class ProductoActivo : IEntidadTenant
 {
+    public Guid TenantId { get; set; }
     public int Id { get; set; }
     public string Nombre { get; set; } = "";
     public int CategoriaId { get; set; }
@@ -17,8 +19,9 @@ public class ProductoActivo
 }
 
 /// <summary>Unidad del inventario (código ACT-0042).</summary>
-public class Activo
+public class Activo : IEntidadTenant
 {
+    public Guid TenantId { get; set; }
     public string Codigo { get; set; } = "";
     public int ProductoId { get; set; }
     /// <summary>Disponible, Asignado, Mantenimiento o Inactivo.</summary>
@@ -26,8 +29,9 @@ public class Activo
     public int? AsignadoId { get; set; }
 }
 
-public class MovimientoActivo
+public class MovimientoActivo : IEntidadTenant
 {
+    public Guid TenantId { get; set; }
     public int Id { get; set; }
     public string ActivoCodigo { get; set; } = "";
     public DateTime Fecha { get; set; } = DateTime.UtcNow;
@@ -38,8 +42,9 @@ public class MovimientoActivo
 }
 
 /// <summary>Orden de asignación de un producto a una persona. "Atrasado" = pendiente con fecha pasada.</summary>
-public class OrdenActivo
+public class OrdenActivo : IEntidadTenant
 {
+    public Guid TenantId { get; set; }
     public int Id { get; set; }
     /// <summary>Workflow o Gestión de activos.</summary>
     public string Origen { get; set; } = "Gestión de activos";
@@ -57,8 +62,9 @@ public class OrdenActivo
     public string Comentario { get; set; } = "";
 }
 
-public class PlantillaDocumento
+public class PlantillaDocumento : IEntidadTenant
 {
+    public Guid TenantId { get; set; }
     public int Id { get; set; }
     public string Nombre { get; set; } = "";
     public string Tipo { get; set; } = "";
@@ -67,8 +73,9 @@ public class PlantillaDocumento
 }
 
 /// <summary>Documento de un colaborador con su circuito de revisión y firmas ("si", "no" o "na" = no aplica).</summary>
-public class DocumentoColaborador
+public class DocumentoColaborador : IEntidadTenant
 {
+    public Guid TenantId { get; set; }
     public int Id { get; set; }
     public int ColaboradorId { get; set; }
     public string Archivo { get; set; } = "";
@@ -83,8 +90,9 @@ public class DocumentoColaborador
 }
 
 /// <summary>Banda salarial de un cargo: mínimo y máximo como porcentaje del objetivo.</summary>
-public class BandaSalarial
+public class BandaSalarial : IEntidadTenant
 {
+    public Guid TenantId { get; set; }
     public int Id { get; set; }
     public string Cargo { get; set; } = "";
     public decimal Objetivo { get; set; }
@@ -94,8 +102,9 @@ public class BandaSalarial
 }
 
 /// <summary>Datos de compensación de un colaborador: última modificación del sueldo, evaluación y compensación teórica.</summary>
-public class CompensacionColaborador
+public class CompensacionColaborador : IEntidadTenant
 {
+    public Guid TenantId { get; set; }
     public int ColaboradorId { get; set; }
     public DateOnly? UltimaModificacion { get; set; }
     public string Evaluacion { get; set; } = "";
@@ -105,8 +114,9 @@ public class CompensacionColaborador
 }
 
 /// <summary>Cargo del estudio salarial de mercado; Interno = cargo propio emparejado.</summary>
-public class CargoMercado
+public class CargoMercado : IEntidadTenant
 {
+    public Guid TenantId { get; set; }
     public int Id { get; set; }
     public string Cargo { get; set; } = "";
     public string? Interno { get; set; }
@@ -120,8 +130,9 @@ public class CargoMercado
 }
 
 /// <summary>Posición planificada (vacante) de headcount.</summary>
-public class Posicion
+public class Posicion : IEntidadTenant
 {
+    public Guid TenantId { get; set; }
     public string Codigo { get; set; } = "";
     public string Cargo { get; set; } = "";
     public string Division { get; set; } = "";
@@ -133,8 +144,9 @@ public class Posicion
 }
 
 /// <summary>Dotación esperada por área o por cargo (Tipo = area o cargo).</summary>
-public class PlanHeadcount
+public class PlanHeadcount : IEntidadTenant
 {
+    public Guid TenantId { get; set; }
     public string Tipo { get; set; } = "area";
     public string Nombre { get; set; } = "";
     public int Cantidad { get; set; }

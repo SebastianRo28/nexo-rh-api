@@ -4,8 +4,9 @@ namespace NexoRh.Api.Domain;
 // igual que las muestra el frontend; las fechas como DateOnly.
 
 /// <summary>Lugar de trabajo. Cada colaborador tiene un recinto principal (Colaborador.RecintoId).</summary>
-public class Recinto
+public class Recinto : IEntidadTenant
 {
+    public Guid TenantId { get; set; }
     public int Id { get; set; }
     public string Nombre { get; set; } = "";
     public string Empresa { get; set; } = "";
@@ -30,8 +31,9 @@ public class Recinto
     public List<int> Usuarios { get; set; } = [];
 }
 
-public class Turno
+public class Turno : IEntidadTenant
 {
+    public Guid TenantId { get; set; }
     public int Id { get; set; }
     public string Nombre { get; set; } = "";
     public string Sigla { get; set; } = "";
@@ -52,8 +54,9 @@ public class Turno
 }
 
 /// <summary>Turno base de un colaborador desde una fecha (Hasta null = vigente).</summary>
-public class AsignacionTurno
+public class AsignacionTurno : IEntidadTenant
 {
+    public Guid TenantId { get; set; }
     public int Id { get; set; }
     public int ColaboradorId { get; set; }
     public int TurnoId { get; set; }
@@ -64,8 +67,9 @@ public class AsignacionTurno
 }
 
 /// <summary>Cambio de un solo día: otro turno (TurnoId) o un código de descanso (DES, LIB, COMP).</summary>
-public class CambioTurno
+public class CambioTurno : IEntidadTenant
 {
+    public Guid TenantId { get; set; }
     public int Id { get; set; }
     public int ColaboradorId { get; set; }
     public DateOnly Fecha { get; set; }
@@ -74,8 +78,9 @@ public class CambioTurno
     public string CreadoPor { get; set; } = "";
 }
 
-public class Marca
+public class Marca : IEntidadTenant
 {
+    public Guid TenantId { get; set; }
     public int Id { get; set; }
     public int ColaboradorId { get; set; }
     public int RecintoId { get; set; }
@@ -95,8 +100,9 @@ public class Marca
     public DateTime RegistradaEn { get; set; } = DateTime.UtcNow;
 }
 
-public class MarcaFallida
+public class MarcaFallida : IEntidadTenant
 {
+    public Guid TenantId { get; set; }
     public int Id { get; set; }
     public int ColaboradorId { get; set; }
     public int RecintoId { get; set; }
@@ -108,8 +114,9 @@ public class MarcaFallida
     public int? Distancia { get; set; }
 }
 
-public class NotaSupervisor
+public class NotaSupervisor : IEntidadTenant
 {
+    public Guid TenantId { get; set; }
     public int Id { get; set; }
     public int ColaboradorId { get; set; }
     public DateOnly Fecha { get; set; }
@@ -117,8 +124,9 @@ public class NotaSupervisor
     public string Autor { get; set; } = "";
 }
 
-public class Vacacion
+public class Vacacion : IEntidadTenant
 {
+    public Guid TenantId { get; set; }
     public int Id { get; set; }
     public int ColaboradorId { get; set; }
     public DateOnly Desde { get; set; }
@@ -129,8 +137,9 @@ public class Vacacion
     public string Observacion { get; set; } = "";
 }
 
-public class Ausencia
+public class Ausencia : IEntidadTenant
 {
+    public Guid TenantId { get; set; }
     public int Id { get; set; }
     public int ColaboradorId { get; set; }
     public string Tipo { get; set; } = "";
@@ -141,8 +150,9 @@ public class Ausencia
 }
 
 /// <summary>Certificado médico (CITT EsSalud o clínica privada).</summary>
-public class LicenciaMedica
+public class LicenciaMedica : IEntidadTenant
 {
+    public Guid TenantId { get; set; }
     public int Id { get; set; }
     public string Folio { get; set; } = "";
     public int ColaboradorId { get; set; }
@@ -159,8 +169,9 @@ public class LicenciaMedica
 }
 
 /// <summary>Solicitud de vacaciones o permiso hecha por el colaborador.</summary>
-public class SolicitudAsistencia
+public class SolicitudAsistencia : IEntidadTenant
 {
+    public Guid TenantId { get; set; }
     public int Id { get; set; }
     public int ColaboradorId { get; set; }
     /// <summary>Vacaciones, Permiso con goce o Permiso sin goce.</summary>
@@ -177,8 +188,9 @@ public class SolicitudAsistencia
 }
 
 /// <summary>Día de descanso o feriado trabajado.</summary>
-public class RecargoDomingo
+public class RecargoDomingo : IEntidadTenant
 {
+    public Guid TenantId { get; set; }
     public int Id { get; set; }
     public int ColaboradorId { get; set; }
     public DateOnly Fecha { get; set; }
@@ -188,8 +200,9 @@ public class RecargoDomingo
 }
 
 /// <summary>Decisión sobre las horas extras de un colaborador en un día (el exceso lo calcula el frontend).</summary>
-public class AprobacionHhee
+public class AprobacionHhee : IEntidadTenant
 {
+    public Guid TenantId { get; set; }
     public int Id { get; set; }
     public int ColaboradorId { get; set; }
     public DateOnly Fecha { get; set; }
@@ -210,8 +223,9 @@ public class LineaHhee
 }
 
 /// <summary>Feriado. Se mantiene igual al catálogo genérico "feriados" (Configuración › Feriados), que es donde se edita.</summary>
-public class Feriado
+public class Feriado : IEntidadTenant
 {
+    public Guid TenantId { get; set; }
     public DateOnly Fecha { get; set; }
     public string Nombre { get; set; } = "";
     /// <summary>Nacional o Regional.</summary>

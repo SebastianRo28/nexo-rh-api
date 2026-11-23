@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using NexoRh.Api.Catalogo;
 using NexoRh.Api.Auth;
 using NexoRh.Api.Data;
 using NexoRh.Api.Dtos;
@@ -11,6 +12,7 @@ namespace NexoRh.Api.Controllers;
 /// <summary>Historial de cambios (Administración › Historial de cambios).</summary>
 [ApiController]
 [Route("api/cambios")]
+[RequiereModulo(Modulos.Pro)]
 [Authorize]
 public class CambiosController(NexoDbContext db, Auditoria auditoria) : ControllerBase
 {

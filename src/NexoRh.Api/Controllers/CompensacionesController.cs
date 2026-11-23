@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using NexoRh.Api.Catalogo;
 using NexoRh.Api.Auth;
 using NexoRh.Api.Data;
 using NexoRh.Api.Domain;
@@ -22,6 +23,7 @@ public record EmparejarEntrada(string? Interno);
 /// </summary>
 [ApiController]
 [Route("api/compensaciones")]
+[RequiereModulo(Modulos.Comp)]
 [Authorize(Policy = Politicas.Administrador)]
 public class CompensacionesController(NexoDbContext db, Auditoria auditoria) : ControllerBase
 {
@@ -62,7 +64,7 @@ public class CompensacionesController(NexoDbContext db, Auditoria auditoria) : C
         BandaSalarial b;
         if (id is { } i)
         {
-            b = (await db.Bandas.FindAsync(i))!;
+            b = (await db.Bandas.Buscar(i))!;
             if (b is null) return NotFound();
             auditoria.Registrar($"Banda salarial · {b.Cargo}", "Modificar", propiedad: "banda",
                 anterior: $"{b.Cargo} · objetivo {b.Objetivo:0.00} · {b.PctMin:0.##}%–{b.PctMax:0.##}%", actual: $"{cargo} · objetivo {p.Objetivo:0.00} · {p.PctMin:0.##}%–{p.PctMax:0.##}%");
@@ -85,7 +87,7 @@ public class CompensacionesController(NexoDbContext db, Auditoria auditoria) : C
     [HttpDelete("bandas/{id:int}")]
     public async Task<IActionResult> EliminarBanda(int id)
     {
-        var b = await db.Bandas.FindAsync(id);
+        var b = await db.Bandas.Buscar(id);
         if (b is null) return NotFound();
         db.Bandas.Remove(b);
         auditoria.Registrar($"Banda salarial · {b.Cargo}", "Eliminar");
@@ -97,10 +99,10 @@ public class CompensacionesController(NexoDbContext db, Auditoria auditoria) : C
     [HttpPut("remuneraciones/{colaboradorId:int}/teorica")]
     public async Task<IActionResult> CompTeorica(int colaboradorId, CompTeoricaEntrada p)
     {
-        var c = await db.Colaboradores.FindAsync(colaboradorId);
+        var c = await db.Colaboradores.Buscar(colaboradorId);
         if (c is null) return NotFound();
         if (p.Monto <= 0 || p.Monto > 1_000_000) return Error("monto", "Ingresa un monto mayor a 0.");
-        var x = await db.Compensaciones.FindAsync(colaboradorId);
+        var x = await db.Compensaciones.Buscar(colaboradorId);
         if (x is null) db.Compensaciones.Add(x = new CompensacionColaborador { ColaboradorId = colaboradorId });
         var antes = x.CompTeorica is { } v ? v.ToString("0.00") : "—";
         x.CompTeorica = Math.Round(p.Monto, 2);
@@ -115,7 +117,7 @@ public class CompensacionesController(NexoDbContext db, Auditoria auditoria) : C
     [HttpPut("estudio/{id:int}/interno")]
     public async Task<IActionResult> Emparejar(int id, EmparejarEntrada p)
     {
-        var m = await db.EstudioSalarial.FindAsync(id);
+        var m = await db.EstudioSalarial.Buscar(id);
         if (m is null) return NotFound();
         var interno = string.IsNullOrWhiteSpace(p.Interno) ? null : p.Interno.Trim();
         if (interno is not null)

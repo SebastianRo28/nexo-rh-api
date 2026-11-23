@@ -2,6 +2,7 @@ using System.Security.Cryptography;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using NexoRh.Api.Catalogo;
 using NexoRh.Api.Auth;
 using NexoRh.Api.Data;
 using NexoRh.Api.Domain;
@@ -25,6 +26,7 @@ public record EstadoDenuncia(string? Estado, string? Resolucion);
 /// </summary>
 [ApiController]
 [Route("api/denuncias")]
+[RequiereModulo(Modulos.Whistleblower)]
 [Authorize]
 public class DenunciasController(NexoDbContext db, Auditoria auditoria, Configuraciones configuraciones) : ControllerBase
 {
@@ -132,7 +134,7 @@ public class DenunciasController(NexoDbContext db, Auditoria auditoria, Configur
     [Authorize(Policy = Politicas.Administrador)]
     public async Task<ActionResult<DenunciaDetalle>> CambiarEstado(int id, EstadoDenuncia p)
     {
-        var d = await db.Denuncias.FindAsync(id);
+        var d = await db.Denuncias.Buscar(id);
         if (d is null) return NotFound();
         if (p.Estado is not ("Nueva" or "En curso" or "Finalizada" or "Descartada")) return Error("estado", "Estado no válido.");
         var resolucion = (p.Resolucion ?? "").Trim();

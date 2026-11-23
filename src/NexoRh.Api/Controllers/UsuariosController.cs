@@ -14,7 +14,7 @@ namespace NexoRh.Api.Controllers;
 [ApiController]
 [Route("api/usuarios")]
 [Authorize(Policy = Politicas.Administrador)]
-public class UsuariosController(NexoDbContext db, Auditoria auditoria) : ControllerBase
+public class UsuariosController(NexoDbContext db, Auditoria auditoria, Invitaciones invitaciones, LimitesPlan limites) : ControllerBase
 {
     [HttpGet]
     public async Task<ActionResult<List<UsuarioDto>>> Listar()
@@ -24,31 +24,68 @@ public class UsuariosController(NexoDbContext db, Auditoria auditoria) : Control
         return lista.Select(u => Dto(u, nombres)).ToList();
     }
 
-    /// <summary>Crea la cuenta con una contraseña temporal, que se devuelve una sola vez para entregarla a la persona.</summary>
+    /// <summary>
+    /// Crea la cuenta. Con invitar = true se envía el correo “Activa tu cuenta” (72 h) y la persona crea su contraseña;
+    /// si no, se genera una contraseña temporal que se devuelve una sola vez para entregarla.
+    /// </summary>
     [HttpPost]
     public async Task<ActionResult<UsuarioCreado>> Crear(UsuarioGuardar p)
     {
         var u = new Usuario();
         var error = await Aplicar(u, p);
         if (error is not null) return error;
+        if (u.Rol == Rol.Administrador && await limites.VerificarAsync(LimitesPlan.Admins) is { } limite) return limite;
+        var invitar = p.Invitar == true;
         var temporal = Passwords.Temporal();
-        Passwords.Asignar(u, temporal, temporal: true);
+        Passwords.Asignar(u, temporal, temporal: !invitar);
+        u.PendienteActivacion = invitar;
         db.Usuarios.Add(u);
         await db.SaveChangesAsync();
-        auditoria.RegistrarTexto($"Usuario #{u.Id}", "Crear", u.Nombre, null, "usuario", null, $"{u.Correo} ({u.Perfil})");
+        auditoria.RegistrarTexto($"Usuario #{u.Id}", "Crear", u.Nombre, null, "usuario", null, $"{u.Correo} ({u.Perfil})" + (invitar ? " · invitado por correo" : ""));
         await db.SaveChangesAsync();
-        return CreatedAtAction(nameof(Listar), new UsuarioCreado(Dto(u, await NombresColaboradores()), temporal));
+        if (invitar) await invitaciones.EnviarAsync(u);
+        return CreatedAtAction(nameof(Listar), new UsuarioCreado(Dto(u, await NombresColaboradores()), invitar ? null : temporal));
+    }
+
+    /// <summary>Reenvía la invitación “Activa tu cuenta” a una cuenta que aún no se activó.</summary>
+    [HttpPost("{id:int}/invitar")]
+    public async Task<ActionResult<UsuarioDto>> Invitar(int id)
+    {
+        var u = await db.Usuarios.Buscar(id);
+        if (u is null) return NotFound();
+        if (!u.Activo) return Problem("Activa la cuenta antes de enviar la invitación.", statusCode: 400);
+        if (!u.PendienteActivacion) return Problem("La cuenta ya está activada. Usa Restablecer contraseña.", statusCode: 400);
+        await invitaciones.EnviarAsync(u);
+        auditoria.RegistrarTexto($"Usuario #{u.Id}", "Modificar", u.Nombre, null, "invitación", null, "Reenviada");
+        await db.SaveChangesAsync();
+        return Dto(u, await NombresColaboradores());
+    }
+
+    /// <summary>Quita el doble factor de una cuenta (p. ej. perdió su teléfono); deberá configurarlo de nuevo si la política lo exige.</summary>
+    [HttpPost("{id:int}/2fa/quitar")]
+    public async Task<ActionResult<UsuarioDto>> QuitarDobleFactor(int id)
+    {
+        var u = await db.Usuarios.Buscar(id);
+        if (u is null) return NotFound();
+        if (!u.TotpActivo) return Problem("La cuenta no tiene doble factor.", statusCode: 400);
+        u.TotpActivo = false;
+        u.TotpSecreto = null;
+        Passwords.RenovarSello(u);
+        auditoria.RegistrarTexto($"Usuario #{u.Id}", "Modificar", u.Nombre, null, "doble factor", "Activo", "Quitado por un administrador");
+        await db.SaveChangesAsync();
+        return Dto(u, await NombresColaboradores());
     }
 
     [HttpPut("{id:int}")]
     public async Task<ActionResult<UsuarioDto>> Modificar(int id, UsuarioGuardar p)
     {
-        var u = await db.Usuarios.FindAsync(id);
+        var u = await db.Usuarios.Buscar(id);
         if (u is null) return NotFound();
         var antes = new { u.Nombre, u.Correo, u.Rol, u.ColaboradorId, u.Perfil };
         var error = await Aplicar(u, p);
         if (error is not null) return error;
         if (u.Rol != antes.Rol && u.Id == YoId()) return Problem("No puedes cambiar tu propio rol.", statusCode: 400);
+        if (u.Activo && u.Rol == Rol.Administrador && antes.Rol != Rol.Administrador && await limites.VerificarAsync(LimitesPlan.Admins) is { } limite) return limite;
         if (antes.Rol == Rol.Administrador && u.Rol != Rol.Administrador && !await QuedaOtroAdmin(u.Id))
             return Problem("Debe quedar al menos un administrador activo.", statusCode: 400);
         // El rol y el colaborador van dentro del token: los cambios cierran las sesiones abiertas de esa persona.
@@ -68,7 +105,7 @@ public class UsuariosController(NexoDbContext db, Auditoria auditoria) : Control
     [HttpPost("{id:int}/estado")]
     public async Task<ActionResult<UsuarioDto>> CambiarEstado(int id, EstadoUsuario p)
     {
-        var u = await db.Usuarios.FindAsync(id);
+        var u = await db.Usuarios.Buscar(id);
         if (u is null) return NotFound();
         if (u.Activo == p.Activo) return Dto(u, await NombresColaboradores());
         if (!p.Activo)
@@ -77,6 +114,7 @@ public class UsuariosController(NexoDbContext db, Auditoria auditoria) : Control
             if (u.Rol == Rol.Administrador && !await QuedaOtroAdmin(u.Id)) return Problem("Debe quedar al menos un administrador activo.", statusCode: 400);
             Passwords.RenovarSello(u);
         }
+        else if (u.Rol == Rol.Administrador && await limites.VerificarAsync(LimitesPlan.Admins) is { } limite) return limite;
         u.Activo = p.Activo;
         auditoria.RegistrarTexto($"Usuario #{u.Id}", "Modificar", u.Nombre, null, "estado", p.Activo ? "Inactivo" : "Activo", p.Activo ? "Activo" : "Inactivo");
         await db.SaveChangesAsync();
@@ -87,7 +125,7 @@ public class UsuariosController(NexoDbContext db, Auditoria auditoria) : Control
     [HttpPost("{id:int}/restablecer")]
     public async Task<ActionResult<UsuarioCreado>> Restablecer(int id)
     {
-        var u = await db.Usuarios.FindAsync(id);
+        var u = await db.Usuarios.Buscar(id);
         if (u is null) return NotFound();
         if (!u.Activo) return Problem("Activa la cuenta antes de restablecer su contraseña.", statusCode: 400);
         var temporal = Passwords.Temporal();
@@ -116,7 +154,7 @@ public class UsuariosController(NexoDbContext db, Auditoria auditoria) : Control
         var rol = Rol.Colaborador;
         if (p.PerfilId is int pid)
         {
-            perfil = await db.Perfiles.FindAsync(pid);
+            perfil = await db.Perfiles.Buscar(pid);
             if (perfil is null) Error("perfilId", "El perfil no existe.");
             else rol = perfil.Rol;
         }
@@ -153,5 +191,5 @@ public class UsuariosController(NexoDbContext db, Auditoria auditoria) : Control
     private static UsuarioDto Dto(Usuario u, Dictionary<int, string> nombres) => new(
         u.Id, u.Nombre, u.Correo, u.Rol.ToString(), u.Perfil, u.PerfilId, u.ColaboradorId,
         u.ColaboradorId is int c && nombres.TryGetValue(c, out var n) ? n : null,
-        u.Activo, u.UltimoAcceso is { } a ? Fechas.TextoHora(a) : "—", u.BloqueadoHasta > DateTime.UtcNow, u.DebeCambiarPassword);
+        u.Activo, u.UltimoAcceso is { } a ? Fechas.TextoHora(a) : "—", u.BloqueadoHasta > DateTime.UtcNow, u.DebeCambiarPassword, u.PendienteActivacion, u.TotpActivo);
 }

@@ -61,7 +61,7 @@ public partial class ReportesController(NexoDbContext db, Auditoria auditoria, G
     [HttpPost("{id:int}/duplicar")]
     public async Task<ActionResult<ReporteDto>> Duplicar(int id)
     {
-        var r = await db.Reportes.FindAsync(id);
+        var r = await db.Reportes.Buscar(id);
         if (r is null) return NotFound();
         var nombre = $"{r.Nombre} (copia)";
         var c = new ReporteGuardado { Nombre = nombre.Length > 120 ? nombre[..120] : nombre, Plantilla = r.Plantilla, Categoria = r.Categoria, Creado = reloj.Hoy, CreadoPor = User.Nombre() };

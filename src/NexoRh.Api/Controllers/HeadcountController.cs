@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using NexoRh.Api.Catalogo;
 using NexoRh.Api.Auth;
 using NexoRh.Api.Data;
 using NexoRh.Api.Domain;
@@ -18,6 +19,7 @@ public record PosicionesNuevas(string? Cargo, string? Division, string? Area, st
 /// </summary>
 [ApiController]
 [Route("api/headcount")]
+[RequiereModulo(Modulos.Headcount)]
 [Authorize(Policy = Politicas.Administrador)]
 public class HeadcountController(NexoDbContext db, Auditoria auditoria) : ControllerBase
 {
@@ -69,7 +71,7 @@ public class HeadcountController(NexoDbContext db, Auditoria auditoria) : Contro
     [HttpDelete("posiciones/{codigo}")]
     public async Task<IActionResult> Eliminar(string codigo)
     {
-        var x = await db.Posiciones.FindAsync(codigo);
+        var x = await db.Posiciones.Buscar(codigo);
         if (x is null) return NotFound();
         db.Posiciones.Remove(x);
         if (x.Vigente)
@@ -84,7 +86,7 @@ public class HeadcountController(NexoDbContext db, Auditoria auditoria) : Contro
 
     private async Task Ajustar(string tipo, string nombre, int delta, int inicial, bool crear = true)
     {
-        var plan = await db.PlanesHeadcount.FindAsync(tipo, nombre);
+        var plan = await db.PlanesHeadcount.Buscar(tipo, nombre);
         if (plan is null)
         {
             if (!crear) return;

@@ -63,7 +63,7 @@ public class ConfiguracionController(NexoDbContext db, Configuraciones configura
             auditoria.Registrar(Titulos.GetValueOrDefault(clave, clave), "Modificar", propiedad: k, anterior: Texto(actual[k]), actual: Texto(v));
             actual[k] = v;
         }
-        var fila = await db.Configuraciones.FindAsync(clave);
+        var fila = await db.Configuraciones.Buscar(clave);
         if (fila is null) db.Configuraciones.Add(fila = new Configuracion { Clave = clave });
         fila.Valores = JsonSerializer.Serialize(actual);
         fila.ActualizadoEn = DateTime.UtcNow;

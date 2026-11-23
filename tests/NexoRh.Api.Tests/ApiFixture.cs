@@ -29,6 +29,12 @@ public class ApiFixture : WebApplicationFactory<Program>
         Environment.SetEnvironmentVariable("Semilla__PasswordInicial", PasswordSemilla);
         Environment.SetEnvironmentVariable("BaseDatos__MigrarAlIniciar", "true");
         Environment.SetEnvironmentVariable("Seguridad__LoginPorMinuto", "1000");
+        Environment.SetEnvironmentVariable("Semilla__DatosDemo", "true");
+        // El cliente de pruebas llama a http://localhost: se resuelve al tenant de ejemplo. Otros tenants, por su subdominio.
+        Environment.SetEnvironmentVariable("Plataforma__Dominio", "localhost");
+        Environment.SetEnvironmentVariable("Plataforma__TenantPorDefecto", "comercialandina");
+        Environment.SetEnvironmentVariable("Seguridad__ForzarHttps", "false");
+        Environment.SetEnvironmentVariable("BaseDatos__EsperaMantenimientoSegundos", "0");
         // Los datos de ejemplo de asistencia son de marzo de 2026.
         Environment.SetEnvironmentVariable("Asistencia__FechaCorte", "16/03/2026");
         Environment.SetEnvironmentVariable("Asistencia__HoraCorte", "11:45");
@@ -60,7 +66,24 @@ public class ApiFixture : WebApplicationFactory<Program>
     public override async ValueTask DisposeAsync()
     {
         using (var scope = Services.CreateScope())
+        {
+            // BD dedicadas que hayan quedado de las pruebas (NexoRh_Pruebas_…_{slug}).
+            var cadena = new Microsoft.Data.SqlClient.SqlConnectionStringBuilder(Environment.GetEnvironmentVariable("ConnectionStrings__Nexo")!);
+            var maestra = new Microsoft.Data.SqlClient.SqlConnectionStringBuilder(cadena.ConnectionString) { InitialCatalog = "master" };
+            var dedicadas = new List<string>();
+            await using (var c = new Microsoft.Data.SqlClient.SqlConnection(maestra.ConnectionString))
+            {
+                await c.OpenAsync();
+                var cmd = new Microsoft.Data.SqlClient.SqlCommand("SELECT name FROM sys.databases WHERE name LIKE @p", c);
+                cmd.Parameters.AddWithValue("@p", baseDatos + "[_]%");
+                await using var r = await cmd.ExecuteReaderAsync();
+                while (await r.ReadAsync()) dedicadas.Add(r.GetString(0));
+            }
+            foreach (var d in dedicadas)
+                await NexoRh.Api.Catalogo.MudanzaBaseDedicada.BorrarBaseAsync(new Microsoft.Data.SqlClient.SqlConnectionStringBuilder(cadena.ConnectionString) { InitialCatalog = d }.ConnectionString, CancellationToken.None);
             await scope.ServiceProvider.GetRequiredService<NexoDbContext>().Database.EnsureDeletedAsync();
+            await scope.ServiceProvider.GetRequiredService<NexoRh.Api.Catalogo.CatalogoDbContext>().Database.EnsureDeletedAsync();
+        }
         await base.DisposeAsync();
         GC.SuppressFinalize(this);
     }

@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using NexoRh.Api.Auth;
+using NexoRh.Api.Catalogo;
 using NexoRh.Api.Data;
 using NexoRh.Api.Domain;
 using NexoRh.Api.Services;
@@ -13,6 +15,7 @@ public record ReconocimientoNuevo(List<int>? ParaIds, string? Valor, string? Men
 /// <summary>Reconocimientos entre compañeros: los ven todos (muro de Mi Portal); cualquiera con colaborador vinculado reconoce a otros.</summary>
 [ApiController]
 [Route("api/reconocimientos")]
+[RequiereModulo(Modulos.Comms)]
 [Authorize]
 public class ReconocimientosController(NexoDbContext db, Alcance alcance, Auditoria auditoria) : ControllerBase
 {
@@ -28,7 +31,7 @@ public class ReconocimientosController(NexoDbContext db, Alcance alcance, Audito
     [HttpPost]
     public async Task<ActionResult<ReconocimientoDto>> Crear(ReconocimientoNuevo p)
     {
-        if (alcance.Propio is not { } yo || await db.Colaboradores.FindAsync(yo) is not { } autor)
+        if (alcance.Propio is not { } yo || await db.Colaboradores.Buscar(yo) is not { } autor)
             return Error("paraIds", "Tu usuario no está vinculado a un colaborador.");
         var ids = (p.ParaIds ?? []).Distinct().ToList();
         if (ids.Count is 0 or > 20) return Error("paraIds", "Elige a quién reconoces (hasta 20 personas).");

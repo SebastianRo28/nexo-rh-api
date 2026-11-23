@@ -45,7 +45,7 @@ public class OrganizacionController(NexoDbContext db, Auditoria auditoria) : Con
     [Authorize(Policy = Politicas.Administrador)]
     public async Task<ActionResult<CargoDto>> ModificarCargo(int id, CargoGuardar p)
     {
-        var c = await db.Cargos.FindAsync(id);
+        var c = await db.Cargos.Buscar(id);
         if (c is null) return NotFound();
         var errores = await ValidarCargo(p, c);
         if (errores.Count > 0) return ValidationProblem(new ValidationProblemDetails(errores) { Title = "Revisa los datos del cargo." });

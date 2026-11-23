@@ -4,8 +4,9 @@ namespace NexoRh.Api.Domain;
 // (202603 = marzo de 2026); el frontend los muestra como "MM/YYYY".
 
 /// <summary>Concepto de planilla. Plame = código SUNAT (Tabla 22).</summary>
-public class TipoItem
+public class TipoItem : IEntidadTenant
 {
+    public Guid TenantId { get; set; }
     public int Id { get; set; }
     public string Codigo { get; set; } = "";
     public string Nombre { get; set; } = "";
@@ -22,8 +23,9 @@ public class TipoItem
 }
 
 /// <summary>Ítem asignado a un colaborador para un rango de períodos (Hasta null = sin fin).</summary>
-public class AsignacionItem
+public class AsignacionItem : IEntidadTenant
 {
+    public Guid TenantId { get; set; }
     public int Id { get; set; }
     public int ColaboradorId { get; set; }
     public int TipoItemId { get; set; }
@@ -34,8 +36,9 @@ public class AsignacionItem
 }
 
 /// <summary>Parámetro legal (RMV, UIT, tasas). Clave fija; el valor lo actualiza un administrador.</summary>
-public class ParametroRem
+public class ParametroRem : IEntidadTenant
 {
+    public Guid TenantId { get; set; }
     public string Clave { get; set; } = "";
     public string Nombre { get; set; } = "";
     public decimal Valor { get; set; }
@@ -45,16 +48,18 @@ public class ParametroRem
     public string Fuente { get; set; } = "";
 }
 
-public class ComisionAfp
+public class ComisionAfp : IEntidadTenant
 {
+    public Guid TenantId { get; set; }
     public string Afp { get; set; } = "";
     public decimal ComisionFlujoPct { get; set; }
     public decimal ComisionSaldoPct { get; set; }
 }
 
 /// <summary>Tramo anual de renta de 5ta categoría, en UIT (Hasta null = sin límite).</summary>
-public class TramoRenta
+public class TramoRenta : IEntidadTenant
 {
+    public Guid TenantId { get; set; }
     public int Id { get; set; }
     public decimal Desde { get; set; }
     public decimal? Hasta { get; set; }
@@ -62,8 +67,9 @@ public class TramoRenta
 }
 
 /// <summary>Período mensual de planilla. Uno solo está abierto; al cerrarlo sus boletas quedan definitivas.</summary>
-public class PeriodoPlanilla
+public class PeriodoPlanilla : IEntidadTenant
 {
+    public Guid TenantId { get; set; }
     /// <summary>yyyymm.</summary>
     public int Id { get; set; }
     public bool Cerrado { get; set; }
@@ -74,8 +80,9 @@ public class PeriodoPlanilla
 }
 
 /// <summary>Boleta de pago de un colaborador en un período (borrador mientras el período esté abierto).</summary>
-public class Boleta
+public class Boleta : IEntidadTenant
 {
+    public Guid TenantId { get; set; }
     public int Id { get; set; }
     public int Periodo { get; set; }
     public int ColaboradorId { get; set; }

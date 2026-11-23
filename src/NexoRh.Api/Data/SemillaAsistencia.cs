@@ -74,7 +74,7 @@ public static class SemillaAsistencia
 
     private static DateOnly F(string s) => DateOnly.ParseExact(s, "dd/MM/yyyy", CultureInfo.InvariantCulture);
 
-    private static IEnumerable<Feriado> Feriados() => new (string f, string n)[]
+    public static IEnumerable<Feriado> Feriados() => new (string f, string n)[]
     {
         ("01/01/2026", "Año Nuevo"), ("02/04/2026", "Jueves Santo"), ("03/04/2026", "Viernes Santo"), ("01/05/2026", "Día del Trabajo"),
         ("07/06/2026", "Batalla de Arica y Día de la Bandera"), ("29/06/2026", "San Pedro y San Pablo"), ("23/07/2026", "Día de la Fuerza Aérea del Perú"),

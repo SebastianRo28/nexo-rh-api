@@ -41,7 +41,7 @@ public class PerfilesController(NexoDbContext db, Auditoria auditoria) : Control
     [HttpPut("{id:int}")]
     public async Task<ActionResult<PerfilDto>> Modificar(int id, PerfilGuardar g)
     {
-        var p = await db.Perfiles.FindAsync(id);
+        var p = await db.Perfiles.Buscar(id);
         if (p is null) return NotFound();
         if (await Validar(g, p) is { } err) return err;
         var nombre = g.Nombre!.Trim();
@@ -84,7 +84,7 @@ public class PerfilesController(NexoDbContext db, Auditoria auditoria) : Control
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> Eliminar(int id)
     {
-        var p = await db.Perfiles.FindAsync(id);
+        var p = await db.Perfiles.Buscar(id);
         if (p is null) return NotFound();
         if (p.Predefinido) return Problem($"“{p.Nombre}” es un perfil predefinido y no se puede eliminar.", statusCode: 400);
         var n = await db.Usuarios.CountAsync(u => u.PerfilId == id);

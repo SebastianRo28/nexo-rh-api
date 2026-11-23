@@ -3,6 +3,7 @@ using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using NexoRh.Api.Catalogo;
 using NexoRh.Api.Auth;
 using NexoRh.Api.Data;
 using NexoRh.Api.Domain;
@@ -17,6 +18,7 @@ namespace NexoRh.Api.Controllers;
 /// </summary>
 [ApiController]
 [Route("api/remuneraciones")]
+[RequiereModulo(Modulos.Payroll)]
 [Authorize(Policy = Politicas.Administrador)]
 public partial class RemuneracionesController(NexoDbContext db, Auditoria auditoria, Planilla planilla) : ControllerBase
 {
@@ -34,7 +36,7 @@ public partial class RemuneracionesController(NexoDbContext db, Auditoria audito
     [HttpPut("parametros/{clave}")]
     public async Task<ActionResult<ParametroRemDto>> Parametro(string clave, ParametroGuardar g)
     {
-        var p = await db.ParametrosRem.FindAsync(clave);
+        var p = await db.ParametrosRem.Buscar(clave);
         if (p is null) return NotFound();
         var max = p.Unidad switch { "%" => 100m, "UIT" => 50m, _ => 1_000_000m };
         if (g.Valor <= 0 || g.Valor > max) return Error("valor", $"El valor debe ser mayor a 0 y como máximo {max.ToString("N0", En)}.");
@@ -50,7 +52,7 @@ public partial class RemuneracionesController(NexoDbContext db, Auditoria audito
     [HttpPut("afp/{afp}")]
     public async Task<ActionResult<ComisionAfpDto>> Afp(string afp, ComisionAfpDto g)
     {
-        var a = await db.ComisionesAfp.FindAsync(afp);
+        var a = await db.ComisionesAfp.Buscar(afp);
         if (a is null) return NotFound();
         if (g.ComisionFlujoPct is < 0 or > 10 || g.ComisionSaldoPct is < 0 or > 10) return Error("comision", "Las comisiones deben estar entre 0 % y 10 %.");
         var anterior = $"{a.ComisionFlujoPct:0.##} % flujo · {a.ComisionSaldoPct:0.##} % saldo";
@@ -64,7 +66,7 @@ public partial class RemuneracionesController(NexoDbContext db, Auditoria audito
     [HttpPut("tramos/{id:int}")]
     public async Task<ActionResult<TramoRentaDto>> Tramo(int id, TramoGuardar g)
     {
-        var t = await db.TramosRenta.FindAsync(id);
+        var t = await db.TramosRenta.Buscar(id);
         if (t is null) return NotFound();
         if (g.TasaPct is < 0 or > 50) return Error("tasaPct", "La tasa debe estar entre 0 % y 50 %.");
         var anterior = $"{t.TasaPct:0.##} %";
@@ -96,7 +98,7 @@ public partial class RemuneracionesController(NexoDbContext db, Auditoria audito
     [HttpPut("tipos-item/{id:int}")]
     public async Task<ActionResult<TipoItemDto>> ModificarTipo(int id, TipoItemGuardar g)
     {
-        var t = await db.TiposItem.FindAsync(id);
+        var t = await db.TiposItem.Buscar(id);
         if (t is null) return NotFound();
         if (Planilla.CodigosCalculados.Contains(t.Codigo)) return Error("codigo", "Este ítem lo calcula la planilla: no se puede modificar.");
         if (await ValidarTipo(g, t) is { } err) return err;
@@ -111,7 +113,7 @@ public partial class RemuneracionesController(NexoDbContext db, Auditoria audito
     [HttpDelete("tipos-item/{id:int}")]
     public async Task<IActionResult> EliminarTipo(int id)
     {
-        var t = await db.TiposItem.FindAsync(id);
+        var t = await db.TiposItem.Buscar(id);
         if (t is null) return NotFound();
         if (t.Automatico) return Error("id", "Los ítems automáticos no se pueden eliminar.");
         var usos = await db.AsignacionesItem.CountAsync(a => a.TipoItemId == id);
@@ -159,9 +161,9 @@ public partial class RemuneracionesController(NexoDbContext db, Auditoria audito
     [HttpPost("asignaciones")]
     public async Task<ActionResult<AsignacionItemDto>> Asignar(AsignacionItemNueva p)
     {
-        var c = await db.Colaboradores.FindAsync(p.ColaboradorId);
+        var c = await db.Colaboradores.Buscar(p.ColaboradorId);
         if (c is null) return Error("colaboradorId", "El colaborador no existe.");
-        var t = await db.TiposItem.FindAsync(p.TipoId);
+        var t = await db.TiposItem.Buscar(p.TipoId);
         if (t is null || !t.Activo) return Error("tipoId", "El ítem no existe o está inactivo.");
         if (Planilla.CodigosCalculados.Contains(t.Codigo)) return Error("tipoId", $"{t.Codigo} lo calcula la planilla: no se asigna a mano.");
         if (p.Monto <= 0 || p.Monto > 1_000_000) return Error("monto", "El monto debe ser mayor a 0 y menor a S/ 1,000,000.");
@@ -188,10 +190,10 @@ public partial class RemuneracionesController(NexoDbContext db, Auditoria audito
     [HttpDelete("asignaciones/{id:int}")]
     public async Task<IActionResult> Quitar(int id)
     {
-        var a = await db.AsignacionesItem.FindAsync(id);
+        var a = await db.AsignacionesItem.Buscar(id);
         if (a is null) return NotFound();
-        var c = await db.Colaboradores.FindAsync(a.ColaboradorId);
-        var t = await db.TiposItem.FindAsync(a.TipoItemId);
+        var c = await db.Colaboradores.Buscar(a.ColaboradorId);
+        var t = await db.TiposItem.Buscar(a.TipoItemId);
         var abierto = await planilla.AbiertoAsync() ?? int.MaxValue;
         if (a.Desde < abierto)
         {

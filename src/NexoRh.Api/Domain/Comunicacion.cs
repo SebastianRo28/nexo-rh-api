@@ -3,8 +3,9 @@ namespace NexoRh.Api.Domain;
 // Desarrollo Organizacional: encuestas, canal de denuncias y publicaciones del portal.
 
 /// <summary>Encuesta de clima o libre. Se responde desde Mi Portal entre Inicio y Termino.</summary>
-public class Encuesta
+public class Encuesta : IEntidadTenant
 {
+    public Guid TenantId { get; set; }
     public int Id { get; set; }
     public string Nombre { get; set; } = "";
     /// <summary>Clima o Libre.</summary>
@@ -35,16 +36,18 @@ public class PreguntaEncuesta
 }
 
 /// <summary>Quién ya respondió (para no responder dos veces). En las anónimas no se relaciona con las respuestas.</summary>
-public class ParticipacionEncuesta
+public class ParticipacionEncuesta : IEntidadTenant
 {
+    public Guid TenantId { get; set; }
     public int EncuestaId { get; set; }
     public int ColaboradorId { get; set; }
     public DateOnly Fecha { get; set; }
 }
 
 /// <summary>Respuestas de una persona. ColaboradorId es null en las encuestas anónimas.</summary>
-public class RespuestaEncuesta
+public class RespuestaEncuesta : IEntidadTenant
 {
+    public Guid TenantId { get; set; }
     public int Id { get; set; }
     public int EncuestaId { get; set; }
     public int? ColaboradorId { get; set; }
@@ -55,8 +58,9 @@ public class RespuestaEncuesta
 /// Denuncia del canal ético. Si es anónima no se guarda quién la hizo: se sigue solo con el código de acceso, que se
 /// muestra una vez al denunciante. La gestiona el comité (administradores).
 /// </summary>
-public class Denuncia
+public class Denuncia : IEntidadTenant
 {
+    public Guid TenantId { get; set; }
     public int Id { get; set; }
     /// <summary>Código de seguimiento (secreto, 12 caracteres).</summary>
     public string Codigo { get; set; } = "";
@@ -75,8 +79,9 @@ public class Denuncia
     public List<MensajeDenuncia> Mensajes { get; set; } = [];
 }
 
-public class MensajeDenuncia
+public class MensajeDenuncia : IEntidadTenant
 {
+    public Guid TenantId { get; set; }
     public int Id { get; set; }
     public int DenunciaId { get; set; }
     /// <summary>Denunciante o Comité.</summary>
@@ -88,8 +93,9 @@ public class MensajeDenuncia
 }
 
 /// <summary>Publicación del muro de Mi Portal. Programada si la fecha de publicación es futura.</summary>
-public class Publicacion
+public class Publicacion : IEntidadTenant
 {
+    public Guid TenantId { get; set; }
     public int Id { get; set; }
     public string Titulo { get; set; } = "";
     public string Texto { get; set; } = "";

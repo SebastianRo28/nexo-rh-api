@@ -2,6 +2,7 @@ using System.Text.Json;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using NexoRh.Api.Catalogo;
 using NexoRh.Api.Auth;
 using NexoRh.Api.Data;
 using NexoRh.Api.Domain;
@@ -25,6 +26,7 @@ public record ResultadosEncuesta(EncuestaDto Encuesta, bool Ocultos, int Minimo,
 /// </summary>
 [ApiController]
 [Route("api/encuestas")]
+[RequiereModulo(Modulos.Surveys)]
 [Authorize]
 public class EncuestasController(NexoDbContext db, Auditoria auditoria, Alcance alcance, RelojAsistencia reloj, Configuraciones configuraciones) : ControllerBase
 {
@@ -88,7 +90,7 @@ public class EncuestasController(NexoDbContext db, Auditoria auditoria, Alcance 
     [Authorize(Policy = Politicas.Administrador)]
     public async Task<ActionResult<EncuestaDto>> Cerrar(int id)
     {
-        var e = await db.Encuestas.FindAsync(id);
+        var e = await db.Encuestas.Buscar(id);
         if (e is null) return NotFound();
         if (Estado(e) == "Finalizada") return Error("id", "La encuesta ya terminó.");
         e.Cerrada = true;
@@ -101,7 +103,7 @@ public class EncuestasController(NexoDbContext db, Auditoria auditoria, Alcance 
     [Authorize(Policy = Politicas.Administrador)]
     public async Task<IActionResult> Eliminar(int id)
     {
-        var e = await db.Encuestas.FindAsync(id);
+        var e = await db.Encuestas.Buscar(id);
         if (e is null) return NotFound();
         var n = await db.ParticipacionesEncuesta.CountAsync(p => p.EncuestaId == id);
         if (n > 0) return Error("id", $"No se puede eliminar: ya tiene {n} respuesta(s). Ciérrala en su lugar.");

@@ -3,18 +3,31 @@ namespace NexoRh.Api.Dtos;
 // Las formas siguen los modelos del frontend (src/app/core/models.ts) para no cambiar las pantallas.
 
 public record LoginPeticion(string Correo, string Password);
-public record UsuarioSesion(int Id, string Nombre, string Correo, string Rol, string Perfil, int? ColaboradorId, string Iniciales, bool DebeCambiarPassword);
-public record LoginRespuesta(string Token, DateTime Expira, UsuarioSesion Usuario);
+public record UsuarioSesion(int Id, string Nombre, string Correo, string Rol, string Perfil, int? ColaboradorId, string Iniciales, bool DebeCambiarPassword,
+    bool DobleFactor = false, bool DebeActivarDobleFactor = false);
+/// <summary>Sesión emitida, o (con MfaRequerido) el mfaToken para el segundo paso del login.</summary>
+public record LoginRespuesta(string? Token, DateTime? Expira, UsuarioSesion? Usuario, bool MfaRequerido = false, string? MfaToken = null, SoporteInfo? Soporte = null);
+/// <summary>Sesión de soporte de Nexo RH dentro de la app del tenant (banner rojo con cuenta regresiva).</summary>
+public record SoporteInfo(Guid SesionId, string Agente, string Modo, string Motivo, string? Ticket, DateTime Expira);
+public record DobleFactorPeticion(string MfaToken, string Codigo);
+public record CodigoPeticion(string Codigo);
+public record PasswordPeticion(string Password);
+public record OlvidePeticion(string Correo);
+public record NuevaPasswordPeticion(string Token, string Password, bool? AceptaPrivacidad = null);
+public record TokenInfo(string Tipo, string Nombre, string Correo, int PasswordMinimo, string? PrivacidadUrl);
+public record DobleFactorInicio(string Clave, string Uri);
 public record CambioPassword(string Actual, string Nueva);
 
 // Administración › Usuarios
 public record UsuarioDto(int Id, string Nombre, string Correo, string Rol, string Perfil, int? PerfilId, int? ColaboradorId, string? Colaborador,
-    bool Activo, string UltimoAcceso, bool Bloqueado, bool DebeCambiarPassword);
+    bool Activo, string UltimoAcceso, bool Bloqueado, bool DebeCambiarPassword,
+    bool PendienteActivacion = false, bool DobleFactor = false);
 /// <summary>PerfilId define el rol (el del perfil); si no se envía, se usa el perfil predefinido del Rol.</summary>
-public record UsuarioGuardar(string Nombre, string Correo, string? Rol, int? ColaboradorId, int? PerfilId = null);
+public record UsuarioGuardar(string Nombre, string Correo, string? Rol, int? ColaboradorId, int? PerfilId = null, bool? Invitar = null);
 public record PerfilDto(int Id, string Nombre, string Rol, bool Predefinido, string Descripcion, int Usuarios, string Creado, string Actualizado, string ModificadoPor);
 public record PerfilGuardar(string? Nombre, string? Rol, string? Descripcion);
-public record UsuarioCreado(UsuarioDto Usuario, string PasswordTemporal);
+/// <summary>PasswordTemporal es null cuando se envió una invitación por correo.</summary>
+public record UsuarioCreado(UsuarioDto Usuario, string? PasswordTemporal);
 public record EstadoUsuario(bool Activo);
 
 public class DetalleDto

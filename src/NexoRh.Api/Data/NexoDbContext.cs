@@ -1,15 +1,26 @@
 using Microsoft.EntityFrameworkCore;
+using NexoRh.Api.Catalogo;
 using NexoRh.Api.Domain;
 
 namespace NexoRh.Api.Data;
 
-public class NexoDbContext(DbContextOptions<NexoDbContext> options) : DbContext(options)
+/// <summary>
+/// BD de negocio (compartida por los tenants o dedicada a uno). Cada entidad lleva TenantId: las consultas se filtran
+/// por el tenant del request (TenantSql.cs), el TenantId se asigna al insertar y no se puede cambiar.
+/// </summary>
+public partial class NexoDbContext(DbContextOptions<NexoDbContext> options, ContextoTenant tenant) : DbContext(options)
 {
+    /// <summary>Tenant del request (Guid.Empty si no hay): los filtros globales lo leen en cada consulta.</summary>
+    public Guid TenantActual => tenant.Id ?? Guid.Empty;
+    public bool ModoPlataforma => tenant.ModoPlataforma;
+    public ContextoTenant Tenant => tenant;
+
     public DbSet<Colaborador> Colaboradores => Set<Colaborador>();
     public DbSet<Cargo> Cargos => Set<Cargo>();
     public DbSet<FamiliaCargo> FamiliasCargo => Set<FamiliaCargo>();
     public DbSet<Competencia> Competencias => Set<Competencia>();
     public DbSet<Usuario> Usuarios => Set<Usuario>();
+    public DbSet<TokenUsuario> TokensUsuario => Set<TokenUsuario>();
     public DbSet<Cambio> Cambios => Set<Cambio>();
     public DbSet<Perfil> Perfiles => Set<Perfil>();
     public DbSet<Configuracion> Configuraciones => Set<Configuracion>();
@@ -118,6 +129,7 @@ public class NexoDbContext(DbContextOptions<NexoDbContext> options) : DbContext(
             e.HasIndex(x => x.Correo).IsUnique();
             e.Property(x => x.Perfil).HasMaxLength(60);
             e.Property(x => x.Sello).HasMaxLength(32).IsRequired();
+            e.Property(x => x.TotpSecreto).HasMaxLength(400);
             e.HasIndex(x => x.ColaboradorId).IsUnique().HasFilter("[ColaboradorId] IS NOT NULL");
             e.Property(x => x.Rol).HasConversion<string>().HasMaxLength(20);
             e.HasOne<Colaborador>().WithMany().HasForeignKey(x => x.ColaboradorId).OnDelete(DeleteBehavior.SetNull);
@@ -143,6 +155,13 @@ public class NexoDbContext(DbContextOptions<NexoDbContext> options) : DbContext(
             e.Property(x => x.Descripcion).HasMaxLength(300);
             e.Property(x => x.ModificadoPor).HasMaxLength(120);
         });
+        b.Entity<TokenUsuario>(e =>
+        {
+            e.Property(x => x.Tipo).HasMaxLength(20).IsRequired();
+            e.Property(x => x.Hash).HasMaxLength(64).IsRequired();
+            e.HasIndex(x => x.Hash).IsUnique();
+            e.HasOne<Usuario>().WithMany().HasForeignKey(x => x.UsuarioId).OnDelete(DeleteBehavior.Cascade);
+        });
         b.Entity<Usuario>().HasOne<Perfil>().WithMany().HasForeignKey(x => x.PerfilId).OnDelete(DeleteBehavior.Restrict);
         b.Entity<FilaCatalogo>(e =>
         {
@@ -163,6 +182,9 @@ public class NexoDbContext(DbContextOptions<NexoDbContext> options) : DbContext(
         SstModelo(b);
         AdministracionModelo(b);
         ReporteriaModelo(b);
+
+        // Siempre al final: convierte el modelo en multi-tenant (claves, índices únicos, relaciones y filtros).
+        AplicarTenant(b);
     }
 
     private static void ReporteriaModelo(ModelBuilder b)

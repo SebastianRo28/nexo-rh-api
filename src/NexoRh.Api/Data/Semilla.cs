@@ -34,17 +34,15 @@ public static class Semilla
         if (!await db.Cambios.AnyAsync()) db.Cambios.AddRange(Cambios());
         await db.SaveChangesAsync();
         await SemillaAsistencia.CargarAsync(db);
-        if (!await db.Perfiles.AnyAsync())
+        // Los tres perfiles predefinidos los crea SemillaBase; estos son los personalizados de la empresa de ejemplo.
+        var perfiles = (await db.Perfiles.Select(p => p.Nombre).ToListAsync()).ToHashSet();
+        db.Perfiles.AddRange(new[]
         {
-            db.Perfiles.AddRange(
-                new Perfil { Nombre = "Administrador", Rol = Rol.Administrador, Predefinido = true, Descripcion = "Acceso completo a Nexo RH.", ModificadoPor = "Rodrigo Paredes" },
-                new Perfil { Nombre = "Supervisor", Rol = Rol.Supervisor, Predefinido = true, Descripcion = "Su portal, su equipo y su asistencia.", ModificadoPor = "Rodrigo Paredes" },
-                new Perfil { Nombre = "Normal / Colaborador", Rol = Rol.Colaborador, Predefinido = true, Descripcion = "Solo su portal.", ModificadoPor = "Rodrigo Paredes" },
-                new Perfil { Nombre = "Jefe Selección", Rol = Rol.Supervisor, Descripcion = "Jefatura del equipo de selección.", ModificadoPor = "Lucía Cáceres" },
-                new Perfil { Nombre = "Prevencionista de Riesgos", Rol = Rol.Colaborador, Descripcion = "Responsable de SST en su recinto.", ModificadoPor = "Rodrigo Paredes" },
-                new Perfil { Nombre = "Admin comunicaciones", Rol = Rol.Colaborador, Descripcion = "Publica comunicados en Mi Portal.", ModificadoPor = "Lucía Cáceres" });
-            await db.SaveChangesAsync();
-        }
+            new Perfil { Nombre = "Jefe Selección", Rol = Rol.Supervisor, Descripcion = "Jefatura del equipo de selección.", ModificadoPor = "Lucía Cáceres" },
+            new Perfil { Nombre = "Prevencionista de Riesgos", Rol = Rol.Colaborador, Descripcion = "Responsable de SST en su recinto.", ModificadoPor = "Rodrigo Paredes" },
+            new Perfil { Nombre = "Admin comunicaciones", Rol = Rol.Colaborador, Descripcion = "Publica comunicados en Mi Portal.", ModificadoPor = "Lucía Cáceres" },
+        }.Where(p => !perfiles.Contains(p.Nombre)));
+        await db.SaveChangesAsync();
         await VincularPerfiles(db);
         await SemillaRemuneraciones.CargarAsync(db);
 

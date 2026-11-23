@@ -1,8 +1,9 @@
 namespace NexoRh.Api.Domain;
 
 /// <summary>Plantilla de workflow (Administrativo › Workflow › Plantillas).</summary>
-public class PlantillaWorkflow
+public class PlantillaWorkflow : IEntidadTenant
 {
+    public Guid TenantId { get; set; }
     public int Id { get; set; }
     public string Nombre { get; set; } = "";
     /// <summary>Alta, Flexible, Pre-Ingreso, Movimiento, Baja o Documento.</summary>
@@ -19,8 +20,9 @@ public class PlantillaWorkflow
 /// Internos (Proceso = constancia, quinta, adelanto, datos o activo). La aprueba o rechaza RR.HH. o la jefatura del
 /// colaborador afectado, nunca quien la pidió.
 /// </summary>
-public class SolicitudWorkflow
+public class SolicitudWorkflow : IEntidadTenant
 {
+    public Guid TenantId { get; set; }
     public int Id { get; set; }
     public string Titulo { get; set; } = "";
     public string Tipo { get; set; } = "";
@@ -43,8 +45,9 @@ public class SolicitudWorkflow
 }
 
 /// <summary>Reconocimiento entre compañeros (Mi Portal). Se publica en el muro.</summary>
-public class Reconocimiento
+public class Reconocimiento : IEntidadTenant
 {
+    public Guid TenantId { get; set; }
     public int Id { get; set; }
     /// <summary>Nombres de los reconocidos ("Apellidos, Nombres"; o un equipo).</summary>
     public string Para { get; set; } = "";

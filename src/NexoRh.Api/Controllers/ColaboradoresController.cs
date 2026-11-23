@@ -59,7 +59,7 @@ public partial class ColaboradoresController(NexoDbContext db, Auditoria auditor
     [Authorize(Policy = Politicas.Administrador)]
     public async Task<ActionResult<ColaboradorDto>> Modificar(int id, ColaboradorGuardar p)
     {
-        var c = await db.Colaboradores.FindAsync(id);
+        var c = await db.Colaboradores.Buscar(id);
         if (c is null) return NotFound();
         var errores = await Validar(p, c);
         if (errores.Count > 0) return ValidationProblem(new ValidationProblemDetails(errores) { Title = "Revisa los datos del colaborador." });

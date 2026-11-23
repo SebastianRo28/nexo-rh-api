@@ -2,6 +2,7 @@ using System.Globalization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using NexoRh.Api.Catalogo;
 using NexoRh.Api.Auth;
 using NexoRh.Api.Data;
 using NexoRh.Api.Domain;
@@ -26,6 +27,7 @@ public record EstadoPlantillaWf(bool Activa);
 /// </summary>
 [ApiController]
 [Route("api/workflow")]
+[RequiereModulo(Modulos.Pro)]
 [Authorize]
 public class WorkflowController(NexoDbContext db, Auditoria auditoria, Alcance alcance, Planilla planilla) : ControllerBase
 {
@@ -71,7 +73,7 @@ public class WorkflowController(NexoDbContext db, Auditoria auditoria, Alcance a
     [HttpPost("solicitudes/portal")]
     public async Task<ActionResult<SolicitudWfDto>> DesdePortal(SolicitudPortal p)
     {
-        if (alcance.Propio is not { } yo || await db.Colaboradores.FindAsync(yo) is not { } c) return Error("proceso", "Tu usuario no está vinculado a un colaborador.");
+        if (alcance.Propio is not { } yo || await db.Colaboradores.Buscar(yo) is not { } c) return Error("proceso", "Tu usuario no está vinculado a un colaborador.");
         if (p.Proceso is null || !Procesos.TryGetValue(p.Proceso, out var proc)) return Error("proceso", "Proceso no válido.");
         var valor = (p.Valor ?? "").Trim();
         if (valor.Length == 0) return Error("valor", "Completa este dato para enviar la solicitud.");
@@ -116,12 +118,12 @@ public class WorkflowController(NexoDbContext db, Auditoria auditoria, Alcance a
     [Authorize(Policy = Politicas.Gestion)]
     public async Task<ActionResult<SolicitudWfDto>> DesdePlantilla(SolicitudDesdePlantilla p)
     {
-        var pl = await db.PlantillasWorkflow.FindAsync(p.PlantillaId);
+        var pl = await db.PlantillasWorkflow.Buscar(p.PlantillaId);
         if (pl is null || pl.Estado != "Activa") return Error("plantillaId", "La plantilla no existe o no está activa.");
         Colaborador? af = null;
         if (p.AfectadoId is { } aid)
         {
-            af = await db.Colaboradores.FindAsync(aid);
+            af = await db.Colaboradores.Buscar(aid);
             if (af is null) return Error("afectadoId", "El colaborador no existe.");
             if (!await alcance.GestionaAsync(aid)) return Forbid();
         }
@@ -145,7 +147,7 @@ public class WorkflowController(NexoDbContext db, Auditoria auditoria, Alcance a
     [HttpPost("solicitudes/{id:int}/resolver")]
     public async Task<ActionResult<ResolucionWf>> Resolver(int id, ResolverWf p)
     {
-        var s = await db.SolicitudesWorkflow.FindAsync(id);
+        var s = await db.SolicitudesWorkflow.Buscar(id);
         if (s is null || !await Visible(s)) return NotFound();
         if (s.Estado != "Pendiente") return Error("estado", $"La solicitud ya fue {s.Estado.ToLowerInvariant()}.");
         if (s.SolicitanteUsuarioId == YoUsuario) return Problem("No puedes resolver una solicitud que tú creaste.", statusCode: 403);
@@ -153,7 +155,7 @@ public class WorkflowController(NexoDbContext db, Auditoria auditoria, Alcance a
         var comentario = (p.Comentario ?? "").Trim();
         if (!p.Aprobar && comentario.Length == 0) return Error("comentario", "Indica el motivo del rechazo.");
         if (comentario.Length > 300) return Error("comentario", "Máximo 300 caracteres.");
-        var c = s.AfectadoId is { } a ? await db.Colaboradores.FindAsync(a) : null;
+        var c = s.AfectadoId is { } a ? await db.Colaboradores.Buscar(a) : null;
 
         int? itemId = null;
         if (p.Aprobar && s.Proceso == "adelanto" && s.Monto is { } monto && c is not null)
@@ -192,7 +194,7 @@ public class WorkflowController(NexoDbContext db, Auditoria auditoria, Alcance a
     [Authorize(Policy = Politicas.Administrador)]
     public async Task<ActionResult<PlantillaWfDto>> EstadoPlantilla(int id, EstadoPlantillaWf p)
     {
-        var pl = await db.PlantillasWorkflow.FindAsync(id);
+        var pl = await db.PlantillasWorkflow.Buscar(id);
         if (pl is null) return NotFound();
         if (pl.Estado is not ("Activa" or "Inactiva")) return Error("estado", $"Corrige la plantilla antes de activarla ({pl.Estado.ToLowerInvariant()}).");
         var nuevo = p.Activa ? "Activa" : "Inactiva";
@@ -229,10 +231,12 @@ public class WorkflowController(NexoDbContext db, Auditoria auditoria, Alcance a
     [Authorize(Policy = Politicas.Administrador)]
     public async Task<IActionResult> EliminarPlantilla(int id)
     {
-        var pl = await db.PlantillasWorkflow.FindAsync(id);
+        var pl = await db.PlantillasWorkflow.Buscar(id);
         if (pl is null) return NotFound();
         if (await db.SolicitudesWorkflow.AnyAsync(s => s.PlantillaId == id && s.Estado == "Pendiente"))
             return Error("id", $"“{pl.Nombre}” tiene solicitudes pendientes: resuélvelas o desactiva la plantilla.");
+        // Las solicitudes cerradas conservan su historial sin la plantilla (antes lo hacía ON DELETE SET NULL).
+        foreach (var s in await db.SolicitudesWorkflow.Where(s => s.PlantillaId == id).ToListAsync()) s.PlantillaId = null;
         db.PlantillasWorkflow.Remove(pl);
         auditoria.Registrar($"Plantilla de workflow · {pl.Nombre}", "Eliminar", anterior: pl.Tipo);
         await db.SaveChangesAsync();

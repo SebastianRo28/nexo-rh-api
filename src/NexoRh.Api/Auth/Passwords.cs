@@ -16,9 +16,10 @@ public static class Passwords
     private const string Digitos = "23456789";
 
     /// <summary>Devuelve el motivo por el que la contraseña no es válida, o null si cumple la política.</summary>
-    public static string? Validar(string? password, string correo)
+    public static string? Validar(string? password, string correo, int minimo = Minimo)
     {
-        if (string.IsNullOrEmpty(password) || password.Length < Minimo) return $"La contraseña debe tener al menos {Minimo} caracteres.";
+        minimo = Math.Clamp(minimo, 8, 64);
+        if (string.IsNullOrEmpty(password) || password.Length < minimo) return $"La contraseña debe tener al menos {minimo} caracteres.";
         if (password.Length > Maximo) return $"La contraseña no puede superar {Maximo} caracteres.";
         if (!password.Any(char.IsLetter) || !password.Any(char.IsDigit)) return "La contraseña debe combinar letras y números.";
         var usuario = correo.Split('@')[0];

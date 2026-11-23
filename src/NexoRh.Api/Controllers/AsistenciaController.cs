@@ -2,6 +2,7 @@ using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using NexoRh.Api.Catalogo;
 using NexoRh.Api.Auth;
 using NexoRh.Api.Data;
 using NexoRh.Api.Domain;
@@ -17,6 +18,7 @@ namespace NexoRh.Api.Controllers;
 /// </summary>
 [ApiController]
 [Route("api/asistencia")]
+[RequiereModulo(Modulos.Attendance)]
 [Authorize]
 public partial class AsistenciaController(NexoDbContext db, Auditoria auditoria, Alcance alcance, RelojAsistencia reloj, Configuraciones configuraciones, Planilla planilla) : ControllerBase
 {
@@ -74,12 +76,12 @@ public partial class AsistenciaController(NexoDbContext db, Auditoria auditoria,
     public async Task<ActionResult<MarcaDto>> MarcarPropia(Marcar p)
     {
         if (alcance.Propio is not { } id) return Error("colaborador", "Tu usuario no está vinculado a un colaborador.");
-        var c = await db.Colaboradores.FindAsync(id);
+        var c = await db.Colaboradores.Buscar(id);
         if (c is null) return Error("colaborador", "Tu usuario no está vinculado a un colaborador.");
         if (!TiposMarca.Contains(p.Tipo)) return Error("tipo", "El tipo de marca debe ser Entrada o Salida.");
         var metodo = p.Metodo ?? "Web";
         if (!Metodos.Contains(metodo)) return Error("metodo", "Método de marcación no válido.");
-        var rc = await db.Recintos.FindAsync(p.RecintoId ?? c.RecintoId ?? 0);
+        var rc = await db.Recintos.Buscar(p.RecintoId ?? c.RecintoId ?? 0);
         if (rc is null || !rc.Activo) return Error("recintoId", "Selecciona un recinto activo.");
 
         var hoy = reloj.Hoy;
@@ -129,7 +131,7 @@ public partial class AsistenciaController(NexoDbContext db, Auditoria auditoria,
     [HttpPost("marcas")]
     public async Task<ActionResult<MarcaDto>> Manual(MarcaManual p)
     {
-        var c = await db.Colaboradores.FindAsync(p.ColaboradorId);
+        var c = await db.Colaboradores.Buscar(p.ColaboradorId);
         if (c is null) return Error("colaboradorId", "El colaborador no existe.");
         if (!await alcance.GestionaAsync(c.Id)) return Prohibido("No puedes registrar marcas de este colaborador.");
         if (!Fechas.TryLeer(p.Fecha, out var fecha)) return Error("fecha", "La fecha debe tener el formato DD/MM/AAAA.");
@@ -139,7 +141,7 @@ public partial class AsistenciaController(NexoDbContext db, Auditoria auditoria,
         if (!TiposMarca.Contains(p.Tipo)) return Error("tipo", "El tipo de marca debe ser Entrada o Salida.");
         var motivo = (p.Motivo ?? "").Trim();
         if (motivo.Length is < 3 or > 300) return Error("motivo", "Indica el motivo de la marca manual.");
-        var rc = await db.Recintos.FindAsync(c.RecintoId ?? 0) ?? await db.Recintos.OrderBy(r => r.Id).FirstAsync();
+        var rc = await db.Recintos.Buscar(c.RecintoId ?? 0) ?? await db.Recintos.OrderBy(r => r.Id).FirstAsync();
         var m = new Marca
         {
             ColaboradorId = c.Id, RecintoId = rc.Id, Fecha = fecha, Hora = p.Hora!, Tipo = p.Tipo!, Metodo = "Manual", Lat = rc.Lat, Lng = rc.Lng,
@@ -155,11 +157,11 @@ public partial class AsistenciaController(NexoDbContext db, Auditoria auditoria,
     [HttpDelete("marcas/{id:int}")]
     public async Task<IActionResult> EliminarMarca(int id)
     {
-        var m = await db.Marcas.FindAsync(id);
+        var m = await db.Marcas.Buscar(id);
         if (m is null) return NotFound();
         if (!await alcance.GestionaAsync(m.ColaboradorId)) return Prohibido("No puedes eliminar marcas de este colaborador.");
         if (m.Metodo != "Manual") return Error("id", "Solo se pueden eliminar marcas manuales.");
-        var c = await db.Colaboradores.FindAsync(m.ColaboradorId);
+        var c = await db.Colaboradores.Buscar(m.ColaboradorId);
         db.Marcas.Remove(m);
         auditoria.Registrar($"Marca manual #{m.Id}", "Eliminar", c, anterior: $"{m.Tipo} {Fechas.Texto(m.Fecha)} {m.Hora}");
         await db.SaveChangesAsync();
@@ -170,7 +172,7 @@ public partial class AsistenciaController(NexoDbContext db, Auditoria auditoria,
     [HttpPost("notas")]
     public async Task<ActionResult<NotaDto>> Nota(NotaNueva p)
     {
-        var c = await db.Colaboradores.FindAsync(p.ColaboradorId);
+        var c = await db.Colaboradores.Buscar(p.ColaboradorId);
         if (c is null) return Error("colaboradorId", "El colaborador no existe.");
         if (!await alcance.GestionaAsync(c.Id)) return Prohibido("No puedes registrar observaciones de este colaborador.");
         var texto = (p.Texto ?? "").Trim();
@@ -186,7 +188,7 @@ public partial class AsistenciaController(NexoDbContext db, Auditoria auditoria,
     [HttpPost("hhee")]
     public async Task<ActionResult<AprobacionHheeDto?>> Decidir(DecisionHhee p)
     {
-        var c = await db.Colaboradores.FindAsync(p.ColaboradorId);
+        var c = await db.Colaboradores.Buscar(p.ColaboradorId);
         if (c is null) return Error("colaboradorId", "El colaborador no existe.");
         if (!await alcance.GestionaAsync(c.Id)) return Prohibido("No puedes aprobar horas extras de este colaborador.");
         if (!Fechas.TryLeer(p.Fecha, out var fecha) || fecha > reloj.Hoy) return Error("fecha", "La fecha no es válida.");
@@ -245,7 +247,7 @@ public partial class AsistenciaController(NexoDbContext db, Auditoria auditoria,
             if (a.Enviado) continue;
             a.Enviado = true;
             enviados++;
-            var c = await db.Colaboradores.FindAsync(a.ColaboradorId);
+            var c = await db.Colaboradores.Buscar(a.ColaboradorId);
             auditoria.Registrar($"Horas extras {Fechas.Texto(f)}", "Modificar", c, "enviado_planilla", "No", "Sí");
         }
         await db.SaveChangesAsync();
@@ -270,7 +272,7 @@ public partial class AsistenciaController(NexoDbContext db, Auditoria auditoria,
     [Authorize(Policy = Politicas.Administrador)]
     public async Task<ActionResult<TurnoDto>> ModificarTurno(int id, TurnoGuardar p)
     {
-        var t = await db.Turnos.FindAsync(id);
+        var t = await db.Turnos.Buscar(id);
         if (t is null) return NotFound();
         if (await ValidarTurno(p, t) is { } err) return err;
         if (!p.Activo && t.Activo && await EnUso(t.Id)) return Error("activo", "No se puede desactivar: hay colaboradores con este turno vigente.");
@@ -284,7 +286,7 @@ public partial class AsistenciaController(NexoDbContext db, Auditoria auditoria,
     [Authorize(Policy = Politicas.Administrador)]
     public async Task<ActionResult<TurnoDto>> EstadoTurno(int id, EstadoActivo p)
     {
-        var t = await db.Turnos.FindAsync(id);
+        var t = await db.Turnos.Buscar(id);
         if (t is null) return NotFound();
         if (!p.Activo && t.Activo && await EnUso(t.Id))
         {
@@ -368,7 +370,7 @@ public partial class AsistenciaController(NexoDbContext db, Auditoria auditoria,
         Turno? turno = null;
         if (p.TurnoId is { } tid)
         {
-            turno = await db.Turnos.FindAsync(tid);
+            turno = await db.Turnos.Buscar(tid);
             if (turno is null || !turno.Activo) return Error("turnoId", "El turno no existe o está inactivo.");
         }
         else if (!CodigosDia.Contains(p.Codigo)) return Error("codigo", "Elige un turno o un código de descanso.");
@@ -438,7 +440,7 @@ public partial class AsistenciaController(NexoDbContext db, Auditoria auditoria,
     [Authorize(Policy = Politicas.Administrador)]
     public async Task<ActionResult<RecintoDto>> ModificarRecinto(int id, RecintoGuardar p)
     {
-        var r = await db.Recintos.FindAsync(id);
+        var r = await db.Recintos.Buscar(id);
         if (r is null) return NotFound();
         if (await ValidarRecinto(p, r) is { } err) return err;
         if (!p.Activo && r.Activo && await db.Colaboradores.AnyAsync(c => c.RecintoId == id))

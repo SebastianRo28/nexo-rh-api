@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using NexoRh.Api.Catalogo;
 using NexoRh.Api.Auth;
 using NexoRh.Api.Data;
 using NexoRh.Api.Domain;
@@ -23,6 +24,7 @@ public record ResultadoLote(int Procesados, int Omitidos);
 /// </summary>
 [ApiController]
 [Route("api/documentos")]
+[RequiereModulo(Modulos.Docs)]
 [Authorize(Policy = Politicas.Administrador)]
 public class DocumentosController(NexoDbContext db, Auditoria auditoria, RelojAsistencia reloj) : ControllerBase
 {
@@ -51,7 +53,7 @@ public class DocumentosController(NexoDbContext db, Auditoria auditoria, RelojAs
     [HttpPost("plantillas/{id:int}/estado")]
     public async Task<IActionResult> EstadoDePlantilla(int id, EstadoPlantilla p)
     {
-        var x = await db.PlantillasDocumento.FindAsync(id);
+        var x = await db.PlantillasDocumento.Buscar(id);
         if (x is null) return NotFound();
         if (x.Activa != p.Activa)
         {
@@ -87,7 +89,7 @@ public class DocumentosController(NexoDbContext db, Auditoria auditoria, RelojAs
         if (d is null) return NotFound();
         d.EliminadoEn = null;
         d.EliminadoPor = "";
-        auditoria.Registrar($"Documento · {d.Archivo}", "Modificar", await db.Colaboradores.FindAsync(d.ColaboradorId), "papelera", "En la papelera", "Restaurado");
+        auditoria.Registrar($"Documento · {d.Archivo}", "Modificar", await db.Colaboradores.Buscar(d.ColaboradorId), "papelera", "En la papelera", "Restaurado");
         await db.SaveChangesAsync();
         return NoContent();
     }
@@ -98,7 +100,7 @@ public class DocumentosController(NexoDbContext db, Auditoria auditoria, RelojAs
         var d = await db.Documentos.FirstOrDefaultAsync(x => x.Id == id && x.EliminadoEn != null);
         if (d is null) return NotFound();
         db.Documentos.Remove(d);
-        auditoria.Registrar($"Documento · {d.Archivo}", "Eliminar", await db.Colaboradores.FindAsync(d.ColaboradorId), "papelera", "En la papelera", "Eliminado definitivamente");
+        auditoria.Registrar($"Documento · {d.Archivo}", "Eliminar", await db.Colaboradores.Buscar(d.ColaboradorId), "papelera", "En la papelera", "Eliminado definitivamente");
         await db.SaveChangesAsync();
         return NoContent();
     }

@@ -1,0 +1,40 @@
+# Compila la API y ejecuta todas las pruebas contra un SQL Server temporal en cada push y pull request.
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  pruebas:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      # Contraseña solo del contenedor temporal de la CI (se destruye al terminar); no es un secreto real.
+      SA_PASSWORD: Ci-Pruebas-NexoRh-2026
+    services:
+      sqlserver:
+        image: mcr.microsoft.com/mssql/server:2022-latest
+        env:
+          ACCEPT_EULA: Y
+          MSSQL_SA_PASSWORD: Ci-Pruebas-NexoRh-2026
+        ports:
+          - 1433:1433
+        options: >-
+          --health-cmd "/opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P Ci-Pruebas-NexoRh-2026 -Q 'SELECT 1' || exit 1"
+          --health-interval 10s --health-timeout 5s --health-retries 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+      - run: dotnet restore
+      - run: dotnet build --no-restore --configuration Release
+      - name: Pruebas
+        run: dotnet test --no-build --configuration Release --logger "console;verbosity=normal"
+        env:
+          NEXO_PRUEBAS_SQL: Server=localhost,1433;User Id=sa;Password=${{ env.SA_PASSWORD }};TrustServerCertificate=True

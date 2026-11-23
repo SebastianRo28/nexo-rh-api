@@ -3,8 +3,9 @@ namespace NexoRh.Api.Domain;
 // Reportería: reportes guardados (Exportadores), sus ejecuciones y el historial de cargas de los importadores.
 
 /// <summary>Reporte guardado a partir de una plantilla.</summary>
-public class ReporteGuardado
+public class ReporteGuardado : IEntidadTenant
 {
+    public Guid TenantId { get; set; }
     public int Id { get; set; }
     public string Nombre { get; set; } = "";
     public string Plantilla { get; set; } = "";
@@ -14,8 +15,9 @@ public class ReporteGuardado
 }
 
 /// <summary>Cada generación de un reporte (archivo descargado).</summary>
-public class EjecucionReporte
+public class EjecucionReporte : IEntidadTenant
 {
+    public Guid TenantId { get; set; }
     public int Id { get; set; }
     public string Reporte { get; set; } = "";
     public string Plantilla { get; set; } = "";
@@ -27,8 +29,9 @@ public class EjecucionReporte
 }
 
 /// <summary>Carga de un archivo con un importador. Exitosa, Con errores (no se cargó nada) o Fallida (archivo ilegible).</summary>
-public class CargaImportacion
+public class CargaImportacion : IEntidadTenant
 {
+    public Guid TenantId { get; set; }
     public int Id { get; set; }
     public string Importador { get; set; } = "";
     public string Archivo { get; set; } = "";

@@ -1,4 +1,5 @@
 using System.Globalization;
+using NexoRh.Api.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -40,7 +41,7 @@ public partial class AsistenciaController
     [HttpPost("vacaciones")]
     public async Task<ActionResult<VacacionDto>> CrearVacacion(VacacionNueva p)
     {
-        var c = await db.Colaboradores.FindAsync(p.ColaboradorId);
+        var c = await db.Colaboradores.Buscar(p.ColaboradorId);
         if (c is null) return Error("colaboradorId", "El colaborador no existe.");
         if (!await alcance.GestionaAsync(c.Id)) return Prohibido("No puedes registrar vacaciones de este colaborador.");
         if (!OrigenesVacacion.Contains(p.Origen ?? "Registro manual")) return Error("origen", "Origen no válido.");
@@ -57,10 +58,10 @@ public partial class AsistenciaController
     [HttpDelete("vacaciones/{id:int}")]
     public async Task<IActionResult> EliminarVacacion(int id)
     {
-        var v = await db.Vacaciones.FindAsync(id);
+        var v = await db.Vacaciones.Buscar(id);
         if (v is null) return NotFound();
         if (!await alcance.GestionaAsync(v.ColaboradorId)) return Prohibido("No puedes eliminar vacaciones de este colaborador.");
-        var c = await db.Colaboradores.FindAsync(v.ColaboradorId);
+        var c = await db.Colaboradores.Buscar(v.ColaboradorId);
         db.Vacaciones.Remove(v);
         auditoria.Registrar($"Vacaciones #{v.Id}", "Eliminar", c, anterior: $"{v.Dias} días ({Fechas.Texto(v.Desde)})");
         await db.SaveChangesAsync();
@@ -71,7 +72,7 @@ public partial class AsistenciaController
     [HttpPost("ausencias")]
     public async Task<ActionResult<AusenciaDto>> CrearAusencia(AusenciaNueva p)
     {
-        var c = await db.Colaboradores.FindAsync(p.ColaboradorId);
+        var c = await db.Colaboradores.Buscar(p.ColaboradorId);
         if (c is null) return Error("colaboradorId", "El colaborador no existe.");
         if (!await alcance.GestionaAsync(c.Id)) return Prohibido("No puedes registrar ausencias de este colaborador.");
         if (!TiposAusencia.Contains(p.Tipo)) return Error("tipo", "Elige el tipo de ausencia.");
@@ -94,10 +95,10 @@ public partial class AsistenciaController
     [HttpDelete("ausencias/{id:int}")]
     public async Task<IActionResult> EliminarAusencia(int id)
     {
-        var a = await db.Ausencias.FindAsync(id);
+        var a = await db.Ausencias.Buscar(id);
         if (a is null) return NotFound();
         if (!await alcance.GestionaAsync(a.ColaboradorId)) return Prohibido("No puedes eliminar ausencias de este colaborador.");
-        var c = await db.Colaboradores.FindAsync(a.ColaboradorId);
+        var c = await db.Colaboradores.Buscar(a.ColaboradorId);
         foreach (var l in await db.Licencias.Where(x => x.AusenciaId == id).ToListAsync()) l.AusenciaId = null;
         db.Ausencias.Remove(a);
         auditoria.Registrar($"Ausencia #{a.Id}", "Eliminar", c, anterior: $"{a.Tipo} · {a.Dias} días");
@@ -110,7 +111,7 @@ public partial class AsistenciaController
     [Authorize(Policy = Politicas.Administrador)]
     public async Task<ActionResult<LicenciaDto>> CrearLicencia(LicenciaNueva p)
     {
-        var c = await db.Colaboradores.FindAsync(p.ColaboradorId);
+        var c = await db.Colaboradores.Buscar(p.ColaboradorId);
         if (c is null) return Error("colaboradorId", "El colaborador no existe.");
         var folio = Corto(p.Folio, 30);
         if (folio.Length == 0) return Error("folio", "Ingresa el folio del certificado.");
@@ -133,10 +134,10 @@ public partial class AsistenciaController
     [Authorize(Policy = Politicas.Administrador)]
     public async Task<ActionResult<LicenciaResultado>> CambiarEstadoLicencia(int id, EstadoLicencia p)
     {
-        var l = await db.Licencias.FindAsync(id);
+        var l = await db.Licencias.Buscar(id);
         if (l is null) return NotFound();
         if (!EstadosLicencia.Contains(p.Estado)) return Error("estado", "Estado no válido.");
-        var c = (await db.Colaboradores.FindAsync(l.ColaboradorId))!;
+        var c = (await db.Colaboradores.Buscar(l.ColaboradorId))!;
         var anterior = l.Estado;
         l.Estado = p.Estado!;
         Ausencia? nueva = null;
@@ -155,7 +156,7 @@ public partial class AsistenciaController
     [HttpPost("solicitudes")]
     public async Task<ActionResult<SolicitudAsistenciaDto>> CrearSolicitud(SolicitudNueva p)
     {
-        var c = await db.Colaboradores.FindAsync(p.ColaboradorId);
+        var c = await db.Colaboradores.Buscar(p.ColaboradorId);
         if (c is null) return Error("colaboradorId", "El colaborador no existe.");
         if (!alcance.EsAdmin && c.Id != alcance.Propio) return Prohibido("Solo puedes crear solicitudes para ti.");
         if (!TiposSolicitud.Contains(p.Tipo)) return Error("tipo", "El tipo debe ser Vacaciones, Permiso con goce o Permiso sin goce.");
@@ -178,13 +179,13 @@ public partial class AsistenciaController
     [HttpPost("solicitudes/{id:int}/resolver")]
     public async Task<ActionResult<SolicitudResultado>> Resolver(int id, ResolverSolicitud p)
     {
-        var s = await db.SolicitudesAsistencia.FindAsync(id);
+        var s = await db.SolicitudesAsistencia.Buscar(id);
         if (s is null) return NotFound();
         if (!await alcance.GestionaAsync(s.ColaboradorId)) return Prohibido("No puedes resolver solicitudes de este colaborador.");
         if (s.Estado != "Pendiente") return Error("estado", $"La solicitud ya fue {s.Estado.ToLowerInvariant()}.");
         var comentario = Corto(p.Comentario, 300);
         if (!p.Aprobar && comentario.Length == 0) return Error("comentario", "Indica el motivo del rechazo.");
-        var c = (await db.Colaboradores.FindAsync(s.ColaboradorId))!;
+        var c = (await db.Colaboradores.Buscar(s.ColaboradorId))!;
         Vacacion? vac = null;
         Ausencia? aus = null;
         if (p.Aprobar)
@@ -212,7 +213,7 @@ public partial class AsistenciaController
     [Authorize(Policy = Politicas.Administrador)]
     public async Task<ActionResult<RecargoDto>> CrearRecargo(RecargoNuevo p)
     {
-        var c = await db.Colaboradores.FindAsync(p.ColaboradorId);
+        var c = await db.Colaboradores.Buscar(p.ColaboradorId);
         if (c is null) return Error("colaboradorId", "El colaborador no existe.");
         if (!Fechas.TryLeer(p.Fecha, out var f)) return Error("fecha", "La fecha debe tener el formato DD/MM/AAAA.");
         if (p.Horas is <= 0 or > 24) return Error("horas", "Las horas deben estar entre 0 y 24.");
@@ -229,9 +230,9 @@ public partial class AsistenciaController
     [Authorize(Policy = Politicas.Administrador)]
     public async Task<IActionResult> EliminarRecargo(int id)
     {
-        var r = await db.Recargos.FindAsync(id);
+        var r = await db.Recargos.Buscar(id);
         if (r is null) return NotFound();
-        var c = await db.Colaboradores.FindAsync(r.ColaboradorId);
+        var c = await db.Colaboradores.Buscar(r.ColaboradorId);
         db.Recargos.Remove(r);
         auditoria.Registrar($"Recargo domingo #{r.Id}", "Eliminar", c, anterior: $"{Fechas.Texto(r.Fecha)} · {r.Horas.ToString(CultureInfo.InvariantCulture)} h");
         await db.SaveChangesAsync();
@@ -243,7 +244,7 @@ public partial class AsistenciaController
     [Authorize(Policy = Politicas.Administrador)]
     public async Task<IActionResult> Jornal(int colaboradorId, JornalGuardar p)
     {
-        var c = await db.Colaboradores.FindAsync(colaboradorId);
+        var c = await db.Colaboradores.Buscar(colaboradorId);
         if (c is null) return NotFound();
         if (p.Jornal is { } j && (j <= 0 || j > 10_000)) return Error("jornal", "El jornal debe ser mayor a 0 y menor a S/ 10,000.");
         string Texto(decimal? x) => x is { } v ? $"Diario S/ {v.ToString("N2", CultureInfo.GetCultureInfo("en-US"))}" : "Mensual";

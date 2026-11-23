@@ -13,6 +13,7 @@ public class ComunicacionTests(ApiFixture api)
     private T ConDb<T>(Func<NexoDbContext, T> f)
     {
         using var scope = api.Services.CreateScope();
+        scope.ServiceProvider.GetRequiredService<NexoRh.Api.Catalogo.ContextoTenant>().Usar(NexoRh.Api.Catalogo.AprovisionadorTenants.TenantDemo());
         return f(scope.ServiceProvider.GetRequiredService<NexoDbContext>());
     }
 
