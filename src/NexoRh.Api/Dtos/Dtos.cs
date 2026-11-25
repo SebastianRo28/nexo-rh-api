@@ -35,6 +35,7 @@ public class DetalleDto
     public string? TipoDocumento { get; set; }
     public string? EmailCorporativo { get; set; }
     public string? Telefono { get; set; }
+    public string? Anexo { get; set; }
     public string? Nacimiento { get; set; }
     public string? Direccion { get; set; }
     public string? Carrera { get; set; }
@@ -50,6 +51,14 @@ public class DetalleDto
     public string? Jornada { get; set; }
     public string? Sindicalizado { get; set; }
     public string? Aviso { get; set; }
+}
+
+public class ContactoDto
+{
+    public string? Email { get; set; }
+    public string? Anexo { get; set; }
+    public string? Sede { get; set; }
+    public string? Cumpleanos { get; set; }
 }
 
 public class ColaboradorDto
@@ -68,6 +77,8 @@ public class ColaboradorDto
     public int? JefeId { get; set; }
     /// <summary>True si se ocultaron datos personales o salariales por permisos.</summary>
     public bool Reservado { get; set; }
+    /// <summary>Datos de directorio que ve todo el personal: correo corporativo, anexo, sede (recinto principal) y cumpleaños (dd/MM).</summary>
+    public ContactoDto Contacto { get; set; } = new();
     public DetalleDto? Detalle { get; set; }
 }
 

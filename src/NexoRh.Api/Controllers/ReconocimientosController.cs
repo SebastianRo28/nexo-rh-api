@@ -1,3 +1,4 @@
+using System.Text.Json.Nodes;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -10,6 +11,7 @@ using NexoRh.Api.Services;
 namespace NexoRh.Api.Controllers;
 
 public record ReconocimientoDto(int Id, string Para, List<int> ParaIds, string Autor, int? AutorId, string Valor, string Mensaje, string Fecha);
+public record ValorReconocimientoDto(string Nombre, string Tono, string Icono);
 public record ReconocimientoNuevo(List<int>? ParaIds, string? Valor, string? Mensaje);
 
 /// <summary>Reconocimientos entre compañeros: los ven todos (muro de Mi Portal); cualquiera con colaborador vinculado reconoce a otros.</summary>
@@ -19,8 +21,24 @@ public record ReconocimientoNuevo(List<int>? ParaIds, string? Valor, string? Men
 [Authorize]
 public class ReconocimientosController(NexoDbContext db, Alcance alcance, Auditoria auditoria) : ControllerBase
 {
-    /// <summary>Valores de la empresa (los mismos del frontend).</summary>
-    public static readonly string[] Valores = ["Vamos por más!", "Nos mueve la excelencia", "Pasión por el servicio", "Al infinito y más allá"];
+    /// <summary>Valores por defecto mientras la empresa no registre los suyos (colección "reconocimiento-valores").</summary>
+    public static readonly ValorReconocimientoDto[] PorDefecto =
+    [
+        new("Trabajo en equipo", "primary", "users"), new("Compromiso", "success", "heart"),
+        new("Excelencia", "orange", "star"), new("Innovación", "info", "rocket"),
+    ];
+
+    /// <summary>Valores de la empresa para reconocer: los suyos o, si no registró ninguno, los valores por defecto.</summary>
+    [HttpGet("valores")]
+    public async Task<List<ValorReconocimientoDto>> Valores()
+    {
+        var propios = (await db.RegistrosModulo.AsNoTracking().Where(r => r.Coleccion == "reconocimiento-valores").OrderBy(r => r.Id).ToListAsync())
+            .Select(r => JsonNode.Parse(r.Datos)!.AsObject())
+            .Where(o => o["activo"]?.GetValue<bool>() != false && !string.IsNullOrWhiteSpace(o["nombre"]?.ToString()))
+            .Select(o => new ValorReconocimientoDto(o["nombre"]!.ToString().Trim(), o["tono"]?.ToString() ?? "primary", o["icono"]?.ToString() ?? "star"))
+            .ToList();
+        return propios.Count > 0 ? propios : [.. PorDefecto];
+    }
 
     private static ReconocimientoDto Dto(Reconocimiento r) => new(r.Id, r.Para, [.. r.ParaIds], r.Autor, r.AutorId, r.Valor, r.Mensaje, Fechas.Texto(r.Fecha));
 
@@ -38,7 +56,7 @@ public class ReconocimientosController(NexoDbContext db, Alcance alcance, Audito
         if (ids.Contains(yo)) return Error("paraIds", "No puedes reconocerte a ti mismo.");
         var para = await db.Colaboradores.Where(c => ids.Contains(c.Id)).OrderBy(c => c.Apellidos).ToListAsync();
         if (para.Count != ids.Count) return Error("paraIds", "Algún colaborador no existe.");
-        if (!Valores.Contains(p.Valor)) return Error("valor", "Elige uno de los valores de la empresa.");
+        if (!(await Valores()).Any(v => v.Nombre == p.Valor)) return Error("valor", "Elige uno de los valores de la empresa.");
         var mensaje = (p.Mensaje ?? "").Trim();
         if (mensaje.Length is 0 or > 300) return Error("mensaje", "Escribe el mensaje (máximo 300 caracteres).");
         var r = new Reconocimiento

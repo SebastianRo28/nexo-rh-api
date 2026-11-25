@@ -26,7 +26,30 @@ public record AnuncioTenant(int Id, string Titulo, string Cuerpo, string Tipo, s
 public record PlanInfo(string Codigo, string Nombre, decimal Precio, int LimiteEmpresas, int LimiteAlmacenamientoGb, int LimiteAdmins, int LimiteApiPorMinuto);
 public record ModuloCuenta(string Codigo, string Nombre, string Descripcion, string[] Beneficios, decimal Precio, string Estado, bool SolicitudPendiente);
 public record EstimadoCuenta(decimal PrecioPorColaborador, decimal Subtotal, decimal Igv, decimal Total);
-public record FacturaDto(string Numero, string Periodo, string Emitida, string Vence, int Colaboradores, decimal Subtotal, decimal Igv, decimal Total, string Estado, string SunatEstado);
+public record FacturaDto(string Numero, string Periodo, string Emitida, string Vence, int Colaboradores, decimal Subtotal, decimal Igv, decimal Total, string Estado, string SunatEstado,
+    string? PagadaEn = null, string? MedioPago = null, string? ProximoCobro = null, string? UltimoCobro = null)
+{
+    /// <summary>Con el pago (fecha y medio), el próximo cobro automático y el resultado del último intento.</summary>
+    public static FacturaDto De(Factura f, IReadOnlyCollection<Cobro> cobros, bool conTarjeta)
+    {
+        var suyos = cobros.Where(c => c.FacturaId == f.Id).OrderBy(c => c.CreadoEn).ToList();
+        var ultimo = suyos.LastOrDefault();
+        return new(f.Numero, f.Periodo, f.Emitida.ToString("dd/MM/yyyy"), f.Vence.ToString("dd/MM/yyyy"), f.Colaboradores, f.Subtotal, f.Igv, f.Subtotal + f.Igv, f.Estado, f.SunatEstado,
+            f.PagadaEn is { } p ? Fechas.TextoHora(p) : null, f.MedioPago,
+            // Un intento que ya tocaba se hace en la próxima revisión (hoy).
+            conTarjeta && CobrosFacturas.ProximoIntento(f, suyos) is { } d ? (d < DateOnly.FromDateTime(DateTime.UtcNow) ? DateOnly.FromDateTime(DateTime.UtcNow) : d).ToString("dd/MM/yyyy") : null,
+            ultimo is null || ultimo.Estado == EstadosCobro.Aprobado ? null : $"{ultimo.Estado}{(ultimo.Mensaje is null ? "" : $": {ultimo.Mensaje}")}");
+    }
+
+    public static async Task<List<FacturaDto>> ListaAsync(CatalogoDbContext catalogo, Guid tenantId, int max)
+    {
+        var facturas = await catalogo.Facturas.AsNoTracking().Where(f => f.TenantId == tenantId).OrderByDescending(f => f.Periodo).Take(max).ToListAsync();
+        var ids = facturas.Select(f => f.Id).ToList();
+        var cobros = await catalogo.Cobros.AsNoTracking().Where(c => ids.Contains(c.FacturaId)).ToListAsync();
+        var conTarjeta = await catalogo.MediosPago.AnyAsync(m => m.TenantId == tenantId && m.Activo);
+        return facturas.Select(f => De(f, cobros, conTarjeta)).ToList();
+    }
+}
 public record DatosFacturacion(string RazonSocial, string Ruc, string? DireccionFiscal, string? CorreoFacturacion);
 /// <summary>⚙ Administración › Estado de cuenta (P-MT.4).</summary>
 public record EstadoCuenta(PlanInfo Plan, string Estado, DateOnly? TrialHasta, List<ModuloCuenta> Modulos, int Colaboradores, EstimadoCuenta Estimado,
@@ -117,11 +140,10 @@ public class CuentaController(NexoDbContext db, CatalogoDbContext catalogo, Cont
         var precio = s.Plan.PrecioPorColaborador + modulos.Where(m => m.Estado == "Contratado").Sum(m => m.Precio);
         var subtotal = colaboradores * precio;
         var igv = Math.Round(subtotal * Modulos.Igv, 2);
-        var facturas = await catalogo.Facturas.AsNoTracking().Where(f => f.TenantId == TenantId).OrderByDescending(f => f.Periodo).Take(24).ToListAsync();
+        var facturas = await FacturaDto.ListaAsync(catalogo, TenantId, 24);
         var planes = await catalogo.Planes.AsNoTracking().OrderBy(p => p.Orden).ToListAsync();
         return new EstadoCuenta(Info(s.Plan), t.Estado, t.TrialHasta, modulos, colaboradores, new EstimadoCuenta(precio, subtotal, igv, subtotal + igv),
-            facturas.Select(f => new FacturaDto(f.Numero, f.Periodo, f.Emitida.ToString("dd/MM/yyyy"), f.Vence.ToString("dd/MM/yyyy"), f.Colaboradores,
-                f.Subtotal, f.Igv, f.Subtotal + f.Igv, f.Estado, f.SunatEstado)).ToList(),
+            facturas,
             new DatosFacturacion(t.RazonSocial, t.Ruc, t.DireccionFiscal, t.CorreoFacturacion), await limites.UsoAsync(), planes.Select(Info).ToList());
     }
 

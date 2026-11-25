@@ -18,7 +18,7 @@ public record CertificadoEliminacion(Guid TenantId, string Slug, string RazonSoc
 /// · cancelado hace más de 30 días → se eliminan sus datos (con certificado);
 /// · uso del mes (colaboradores, usuarios, almacenamiento) y factura del mes anterior.
 /// </summary>
-public class CicloVidaTenants(CatalogoDbContext catalogo, ConsultasPlataforma consultas, CadenasConexion cadenas, ILogger<CicloVidaTenants> log)
+public class CicloVidaTenants(CatalogoDbContext catalogo, ConsultasPlataforma consultas, CadenasConexion cadenas, CobrosFacturas cobros, ILogger<CicloVidaTenants> log)
 {
     public const int DiasMorosidadSuspension = 30;
     public const int DiasCancelacion = 30;
@@ -35,6 +35,9 @@ public class CicloVidaTenants(CatalogoDbContext catalogo, ConsultasPlataforma co
             eventos.Add($"{t.Slug}: {detalle}");
             catalogo.AuditoriaPlataforma.Add(new AuditoriaPlataforma { Actor = actor, Accion = accion, TenantId = t.Id, Detalle = detalle, En = ahora });
         }
+
+        // Cobro automático de las facturas impagas (con tarjeta registrada), antes de evaluar la morosidad.
+        if (await cobros.EjecutarAsync(ahora, soloTenant, ct) is > 0 and var cobradas) eventos.Add($"{cobradas} cobro(s) automático(s) con tarjeta");
 
         // Facturas vencidas.
         var ids = tenants.Select(t => t.Id).ToList();
@@ -105,6 +108,8 @@ public class CicloVidaTenants(CatalogoDbContext catalogo, ConsultasPlataforma co
             Evento(t, "invoice.issued", $"Factura {anterior}: {colaboradores} colaboradores · S/ {subtotal:0.00} + IGV");
         }
         await catalogo.SaveChangesAsync(ct);
+        // Primer cobro de las facturas recién emitidas.
+        if (facturas > 0 && await cobros.EjecutarAsync(ahora, soloTenant, ct) is > 0 and var nuevas) eventos.Add($"{nuevas} cobro(s) de facturas nuevas");
         if (eventos.Count > 0) log.LogInformation("Ciclo de vida: {Eventos}", string.Join(" | ", eventos));
         return new ResumenCicloVida(ahora, trials, morosos, suspendidos, reactivados, eliminados, usos, facturas, eventos);
     }
@@ -162,6 +167,8 @@ public class CicloVidaTenants(CatalogoDbContext catalogo, ConsultasPlataforma co
         catalogo.Solicitudes.RemoveRange(catalogo.Solicitudes.Where(a => a.TenantId == t.Id));
         catalogo.SesionesSoporte.RemoveRange(catalogo.SesionesSoporte.Where(a => a.TenantId == t.Id));
         catalogo.Usos.RemoveRange(catalogo.Usos.Where(a => a.TenantId == t.Id));
+        // Tarjetas registradas (los cobros se conservan con las facturas).
+        catalogo.MediosPago.RemoveRange(catalogo.MediosPago.Where(a => a.TenantId == t.Id));
         catalogo.Correos.RemoveRange(catalogo.Correos.Where(a => a.TenantId == t.Id));
         catalogo.Dominios.RemoveRange(catalogo.Dominios.Where(d => d.TenantId == t.Id && d.Tipo == "Personalizado"));
         var cert = new CertificadoEliminacion(t.Id, t.Slug, t.RazonSocial, t.Ruc, ahora, responsable, porTabla.Values.Sum(), porTabla, archivos,

@@ -20,7 +20,7 @@ namespace NexoRh.Api.Controllers;
 [Route("api/asistencia")]
 [RequiereModulo(Modulos.Attendance)]
 [Authorize]
-public partial class AsistenciaController(NexoDbContext db, Auditoria auditoria, Alcance alcance, RelojAsistencia reloj, Configuraciones configuraciones, Planilla planilla) : ControllerBase
+public partial class AsistenciaController(NexoDbContext db, Auditoria auditoria, Alcance alcance, RelojAsistencia reloj, Configuraciones configuraciones, Planilla planilla, ServicioUbigeo ubigeo) : ControllerBase
 {
     private static readonly string[] Metodos = ["Web", "App", "QR", "Foto"];
     private static readonly string[] TiposMarca = ["Entrada", "Salida"];
@@ -427,6 +427,7 @@ public partial class AsistenciaController(NexoDbContext db, Auditoria auditoria,
     [Authorize(Policy = Politicas.Administrador)]
     public async Task<ActionResult<RecintoDto>> CrearRecinto(RecintoGuardar p)
     {
+        p = await ConUbigeoOficial(p);
         if (await ValidarRecinto(p, null) is { } err) return err;
         var r = new Recinto { Id = (await db.Recintos.MaxAsync(x => (int?)x.Id) ?? 0) + 1 };
         AplicarRecinto(r, p);
@@ -442,6 +443,7 @@ public partial class AsistenciaController(NexoDbContext db, Auditoria auditoria,
     {
         var r = await db.Recintos.Buscar(id);
         if (r is null) return NotFound();
+        p = await ConUbigeoOficial(p);
         if (await ValidarRecinto(p, r) is { } err) return err;
         if (!p.Activo && r.Activo && await db.Colaboradores.AnyAsync(c => c.RecintoId == id))
             return Error("activo", "No se puede desactivar: hay colaboradores con este recinto como principal.");
@@ -477,6 +479,15 @@ public partial class AsistenciaController(NexoDbContext db, Auditoria auditoria,
         else if (await db.Recintos.AnyAsync(x => x.Nombre == nombre && x.Id != (actual == null ? 0 : actual.Id))) Err("nombre", "Ya existe un recinto con ese nombre.");
         if ((p.Direccion ?? "").Trim().Length is 0 or > 200) Err("direccion", "Ingresa la dirección.");
         if (p.Radio is < 20 or > 5000) Err("radio", "El radio debe estar entre 20 y 5000 metros.");
+        // En el Perú, departamento, provincia y distrito deben existir en el ubigeo vigente (ya normalizados por ConUbigeoOficial).
+        if (Ubigeo.EsPeru(p.Pais) && await ubigeo.DepartamentosAsync() is { Count: > 0 } deps)
+        {
+            var dep = deps.FirstOrDefault(d => d.Nombre == p.Departamento);
+            var prov = dep?.Provincias.FirstOrDefault(x => x.Nombre == p.Provincia);
+            if (dep is null) Err("departamento", "Elige un departamento de la lista.");
+            else if (prov is null) Err("provincia", $"Elige una provincia de {dep.Nombre}.");
+            else if (!prov.Distritos.Any(x => x.Nombre == p.Distrito)) Err("distrito", $"Elige un distrito de la provincia de {prov.Nombre}.");
+        }
         if (p.Lat is < -90 or > 90 || p.Lng is < -180 or > 180) Err("lat", "Las coordenadas no son válidas.");
         var emails = p.Emails ?? [];
         if (emails.Count > 5) Err("emails", "Máximo 5 correos de alertas.");
@@ -485,6 +496,17 @@ public partial class AsistenciaController(NexoDbContext db, Auditoria auditoria,
         if (refs.Count > 0 && await db.Colaboradores.CountAsync(c => refs.Contains(c.Id)) != refs.Count) Err("usuarios", "Algún colaborador indicado no existe.");
         if ((p.Ruc ?? "") is { Length: > 0 } ruc && !Regex.IsMatch(ruc, @"^\d{11}$")) Err("ruc", "El RUC debe tener 11 dígitos.");
         return e.Count > 0 ? ValidationProblem(new ValidationProblemDetails(e) { Title = "Revisa los datos del recinto." }) : null;
+    }
+
+    /// <summary>Lleva departamento, provincia y distrito a los nombres del ubigeo vigente si coinciden sin tildes ("Lurín" → "Lurin").</summary>
+    private async Task<RecintoGuardar> ConUbigeoOficial(RecintoGuardar p)
+    {
+        if (!Ubigeo.EsPeru(p.Pais)) return p;
+        var dep = (await ubigeo.DepartamentosAsync()).FirstOrDefault(d => Ubigeo.Igual(d.Nombre, p.Departamento));
+        if (dep is null) return p;
+        var prov = dep.Provincias.FirstOrDefault(x => Ubigeo.Igual(x.Nombre, p.Provincia));
+        var dist = prov?.Distritos.FirstOrDefault(x => Ubigeo.Igual(x.Nombre, p.Distrito));
+        return p with { Departamento = dep.Nombre, Provincia = prov?.Nombre ?? p.Provincia, Distrito = dist?.Nombre ?? p.Distrito };
     }
 
     private static void AplicarRecinto(Recinto r, RecintoGuardar p)

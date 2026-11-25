@@ -89,6 +89,10 @@ al entrar.
 | `Dns__Servidores__0` | Opcional: servidor DNS para las verificaciones (por defecto, los del sistema) |
 | `Correo__SpfInclude` | Dominio que los clientes incluyen en su SPF para enviar desde su dominio (por defecto `spf.{dominio}`) |
 | `BaseDatos__ServidorDedicadas` | Opcional: cadena de la instancia donde se crean las BD dedicadas (por defecto, la misma que `ConnectionStrings__Nexo`) |
+| `Izipay__Modo` | `Simulado` (por defecto: tarjetas de prueba internas, sin Izipay; no funciona en producción), `Sandbox` o `Produccion` |
+| `Izipay__CodigoComercio` · `Izipay__ClaveApi` · `Izipay__ClaveHash` · `Izipay__ClavePublicaRsa` | Del panel de Izipay (Desarrolladores › Claves): código de comercio, “Clave de API del nuevo botón de pagos”, “Clave Hash” y “Clave pública izipay” (RSA) |
+| `Izipay__UrlIpn` | URL pública de las notificaciones: `https://{api}/api/publico/pagos/izipay/ipn` |
+| `Izipay__IpServidor` · `Izipay__RellenoRsa` | Opcionales: IP pública del servidor para el antifraude en los cobros automáticos; relleno RSA (`Pkcs1` u `OaepSha1`) |
 
 La API **no arranca** fuera de desarrollo si `Asistencia:FechaCorte` (fecha fija de los datos de ejemplo) o
 `Semilla:DatosDemo` están configurados, o si `Cors:Origenes` no es una dirección `https://`.
@@ -141,6 +145,21 @@ La API **no arranca** fuera de desarrollo si `Asistencia:FechaCorte` (fecha fija
 - Cabeceras de seguridad (`nosniff`, `X-Frame-Options: DENY`, CSP, `no-store` en `/api`) y sin cabecera `Server`.
 - Pedidos de máximo 10 MB; Swagger solo en desarrollo; registros en formato JSON por la consola.
 - `GET /api/salud` devuelve 200 si la API llega a la base de datos y 503 si no: úsalo en el monitor del servidor.
+- Cobro automático con Izipay (`Catalogo/Pagos.cs`): el administrador registra su tarjeta en el formulario de Izipay
+  (Estado de cuenta) y autoriza el cargo recurrente; solo se guarda el token, cifrado. El ciclo de vida cobra cada factura
+  el día de su emisión y reintenta a los 3 y 7 días; después sigue la morosidad. “Pagar ahora” (cliente) y “Cobrar ahora”
+  (consola) cobran fuera de ese calendario. Un índice único impide dos cobros vigentes de una misma factura. Si Izipay no
+  responde, el cobro queda “Por confirmar” hasta su notificación (`/api/publico/pagos/izipay/ipn`, firma HMAC-SHA256) o
+  hasta resolverlo en la consola. **Antes de producción, valida en Sandbox el cobro `pay_token` + `mitrecurrent`, el
+  relleno RSA y el `userScoring` del antifraude con Izipay.**
+- Módulos sin tabla propia (KPI, beneficios y canjes, cursos y su avance, evaluaciones, tickets, dashboards, niveles de
+  banda, correos automáticos, portadas y accesos del portal, valores de reconocimiento, archivos de pago, claves de API,
+  IPs, webhooks e integración contable): `GET/POST/PUT/DELETE /api/datos/{coleccion}`, guardados como JSON por empresa
+  (tabla `RegistrosModulo`, con RLS). Cada colección define en `Services/ColeccionesModulo.cs` quién lee y escribe, qué
+  módulo requiere y qué campos puede enviar un colaborador en sus registros propios (el servidor fija, p. ej., el costo
+  de un canje). Las claves de API guardan solo el hash: el token completo se devuelve una vez, al crearla.
+- Datos de ejemplo: solo la empresa demo los recibe (`Semilla*.cs` y `Data/demo-modulos.json`); una empresa nueva
+  empieza vacía. Asistencia, remuneraciones y parámetros generales se guardan en `/api/configuracion/{clave}`.
 
 ### Migraciones como paso del despliegue (alternativa a `MigrarAlIniciar`)
 

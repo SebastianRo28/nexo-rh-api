@@ -86,12 +86,58 @@ public class CatalogosTests(ApiFixture api)
         Assert.Equal(["ca-metodos", "ca-tolerancias"], publicas.EnumerateObject().Select(p => p.Name).Order());
 
         var admin = await api.ClienteDe(ApiFixture.Admin);
-        Assert.Equal(8, (await admin.GetFromJsonAsync<JsonElement>("/api/configuracion")).EnumerateObject().Count());
+        Assert.Equal(11, (await admin.GetFromJsonAsync<JsonElement>("/api/configuracion")).EnumerateObject().Count());
         Assert.Equal(HttpStatusCode.BadRequest, (await admin.PutAsJsonAsync("/api/configuracion/notificaciones", new { respuesta = "no-es-correo" })).StatusCode);
         Assert.Equal(HttpStatusCode.BadRequest, (await admin.PutAsJsonAsync("/api/configuracion/compensaciones", new { referencia = "Inventada" })).StatusCode);
         Assert.Equal(HttpStatusCode.BadRequest, (await admin.PutAsJsonAsync("/api/configuracion/compensaciones", new { compaMin = 2 })).StatusCode);
         var r = await admin.PutAsJsonAsync("/api/configuracion/compensaciones", new { compaMin = 0.85 });
         r.EnsureSuccessStatusCode();
         Assert.Equal(0.85m, (await r.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("compaMin").GetDecimal());
+    }
+}
+
+[Collection("api")]
+public class UbigeoTests(ApiFixture api)
+{
+    [Fact]
+    public async Task Las_empresas_leen_el_ubigeo_oficial_del_INEI_como_arbol()
+    {
+        Assert.Equal(HttpStatusCode.Unauthorized, (await api.CreateClient().GetAsync("/api/ubigeo")).StatusCode);
+        var u = await (await api.ClienteDe(ApiFixture.Colaborador)).GetFromJsonAsync<JsonElement>("/api/ubigeo");
+        Assert.Equal("v2026.1", u.GetProperty("version").GetString());
+        var deps = u.GetProperty("departamentos").EnumerateArray().ToList();
+        Assert.Equal(25, deps.Count);
+        Assert.Equal(196, deps.Sum(d => d.GetProperty("provincias").GetArrayLength()));
+        Assert.Equal(1892, deps.Sum(d => d.GetProperty("provincias").EnumerateArray().Sum(p => p.GetProperty("distritos").GetArrayLength())));
+        var callao = deps.Single(d => d.GetProperty("nombre").GetString() == "Callao").GetProperty("provincias")[0].GetProperty("distritos").EnumerateArray().ToList();
+        Assert.Contains(callao, d => d.GetProperty("nombre").GetString() == "Carmen de la Legua-Reynoso" && d.GetProperty("codigo").GetString() == "070103");
+    }
+
+    [Fact]
+    public async Task Recintos_validan_y_normalizan_departamento_provincia_y_distrito()
+    {
+        var admin = await api.ClienteDe(ApiFixture.Admin);
+        object Recinto(string nombre, string dep, string prov, string dist) => new
+        {
+            nombre, empresa = "Comercial Andina S.A.C.", ruc = "20512345678", codigoInterno = "CA-UB", pais = "Perú", departamento = dep, provincia = prov,
+            distrito = dist, direccion = "Av. Prueba 100", clave = "UB-" + nombre[..2], info = "", lat = -12.0, lng = -77.0, radio = 150, activo = true,
+        };
+        Assert.Equal(HttpStatusCode.BadRequest, (await admin.PostAsJsonAsync("/api/asistencia/recintos", Recinto("Ubigeo malo 1", "Narnia", "Lima", "Lurin"))).StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, (await admin.PostAsJsonAsync("/api/asistencia/recintos", Recinto("Ubigeo malo 2", "Lima", "Lima", "Yanahuara"))).StatusCode); // es de Arequipa
+        var r = await admin.PostAsJsonAsync("/api/asistencia/recintos", Recinto("Ubigeo con tildes", "lima", "LIMA", "Lurín"));
+        r.EnsureSuccessStatusCode();
+        var creado = await r.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Equal(("Lima", "Lima", "Lurin"), (creado.GetProperty("departamento").GetString(), creado.GetProperty("provincia").GetString(), creado.GetProperty("distrito").GetString()));
+    }
+
+    [Fact]
+    public async Task Localidades_usan_los_departamentos_del_ubigeo()
+    {
+        var admin = await api.ClienteDe(ApiFixture.Admin);
+        var malo = await admin.PostAsJsonAsync("/api/catalogos/localidades", new { nombre = "Sede Narnia", tipo = "Oficina", direccion = "Calle 1", departamento = "Narnia", activo = true });
+        Assert.Equal(HttpStatusCode.BadRequest, malo.StatusCode);
+        var r = await admin.PostAsJsonAsync("/api/catalogos/localidades", new { nombre = "Sede Huancayo", tipo = "Oficina", direccion = "Jr. Real 100", departamento = "Junín", activo = true });
+        r.EnsureSuccessStatusCode();
+        Assert.Equal("Junin", (await r.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("departamento").GetString());
     }
 }

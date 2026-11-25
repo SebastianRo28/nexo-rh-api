@@ -17,6 +17,8 @@ public class CatalogoDbContext(DbContextOptions<CatalogoDbContext> options) : Db
     public DbSet<TenantFlag> Flags => Set<TenantFlag>();
     public DbSet<SolicitudInformacion> Solicitudes => Set<SolicitudInformacion>();
     public DbSet<Factura> Facturas => Set<Factura>();
+    public DbSet<MedioPago> MediosPago => Set<MedioPago>();
+    public DbSet<Cobro> Cobros => Set<Cobro>();
     public DbSet<UsuarioPlataforma> UsuariosPlataforma => Set<UsuarioPlataforma>();
     public DbSet<AuditoriaPlataforma> AuditoriaPlataforma => Set<AuditoriaPlataforma>();
     public DbSet<TokenPlataforma> TokensPlataforma => Set<TokenPlataforma>();
@@ -157,8 +159,45 @@ public class CatalogoDbContext(DbContextOptions<CatalogoDbContext> options) : Db
             e.Property(x => x.Igv).HasPrecision(12, 2);
             e.Property(x => x.Estado).HasMaxLength(20);
             e.Property(x => x.SunatEstado).HasMaxLength(40);
+            e.Property(x => x.MedioPago).HasMaxLength(60);
             e.HasIndex(x => new { x.TenantId, x.Periodo });
             e.HasOne<Tenant>().WithMany().HasForeignKey(x => x.TenantId).OnDelete(DeleteBehavior.Cascade);
+        });
+        b.Entity<MedioPago>(e =>
+        {
+            e.Property(x => x.Proveedor).HasMaxLength(20);
+            e.Property(x => x.Modo).HasMaxLength(12);
+            e.Property(x => x.TokenCifrado).HasMaxLength(1000);
+            e.Property(x => x.CompradorId).HasMaxLength(100);
+            e.Property(x => x.Marca).HasMaxLength(4);
+            e.Property(x => x.Tarjeta).HasMaxLength(25);
+            e.Property(x => x.Titular).HasMaxLength(120);
+            e.Property(x => x.Facturacion).HasMaxLength(2000);
+            e.Property(x => x.AutorizadoPor).HasMaxLength(200);
+            e.Property(x => x.AutorizacionIp).HasMaxLength(45);
+            // Una sola tarjeta activa por tenant.
+            e.HasIndex(x => x.TenantId).IsUnique().HasFilter("[Activo] = 1");
+            e.HasOne<Tenant>().WithMany().HasForeignKey(x => x.TenantId).OnDelete(DeleteBehavior.Cascade);
+        });
+        b.Entity<Cobro>(e =>
+        {
+            e.Property(x => x.Factura).HasMaxLength(20);
+            e.Property(x => x.Monto).HasPrecision(12, 2);
+            e.Property(x => x.Origen).HasMaxLength(12);
+            e.Property(x => x.Estado).HasMaxLength(15);
+            e.Property(x => x.OrderNumber).HasMaxLength(15);
+            e.Property(x => x.TransactionId).HasMaxLength(40);
+            e.Property(x => x.Codigo).HasMaxLength(30);
+            e.Property(x => x.Mensaje).HasMaxLength(300);
+            e.Property(x => x.CodigoAutorizacion).HasMaxLength(20);
+            e.Property(x => x.Referencia).HasMaxLength(30);
+            e.Property(x => x.Tarjeta).HasMaxLength(20);
+            e.Property(x => x.Actor).HasMaxLength(200);
+            e.HasIndex(x => x.OrderNumber);
+            e.HasIndex(x => new { x.TenantId, x.CreadoEn });
+            // Nunca dos cobros en curso o aprobados de la misma factura.
+            e.HasIndex(x => x.FacturaId).IsUnique().HasFilter("[Estado] IN ('Procesando', 'Aprobado', 'Por confirmar')").HasDatabaseName("IX_Cobros_FacturaId_Vigente");
+            e.HasOne<Factura>().WithMany().HasForeignKey(x => x.FacturaId).OnDelete(DeleteBehavior.Restrict);
         });
         b.Entity<UsuarioPlataforma>(e =>
         {

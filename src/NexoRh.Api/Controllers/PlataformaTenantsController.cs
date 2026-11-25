@@ -268,8 +268,12 @@ public class PlataformaTenantsController(CatalogoDbContext catalogo, ConsultasPl
         var f = await catalogo.Facturas.FirstOrDefaultAsync(x => x.TenantId == id && x.Numero == numero);
         if (f is null) return NotFound();
         if (f.Estado == "Pagada") return Problem("La factura ya está pagada.", statusCode: 409);
+        if (await catalogo.Cobros.AnyAsync(c => c.FacturaId == f.Id && (c.Estado == EstadosCobro.Procesando || c.Estado == EstadosCobro.PorConfirmar)))
+            return Problem("La factura tiene un cobro con tarjeta por confirmar: resuélvelo primero.", statusCode: 409);
         f.Estado = "Pagada";
-        auditoria.Registrar("invoice.paid", id, $"{numero} · S/ {f.Subtotal + f.Igv:0.00}");
+        f.PagadaEn = DateTime.UtcNow;
+        f.MedioPago = "Registro manual";
+        auditoria.Registrar("invoice.paid", id, $"{numero} · S/ {f.Subtotal + f.Igv:0.00} · registro manual");
         await catalogo.SaveChangesAsync();
         var r = await cicloVida.EjecutarAsync(DateTime.UtcNow, id, User.Identity?.Name ?? "Consola");
         Olvidar(id);
@@ -530,9 +534,50 @@ public class PlataformaTenantsController(CatalogoDbContext catalogo, ConsultasPl
     }
 
     [HttpGet("tenants/{id:guid}/invoices")]
-    public async Task<List<FacturaDto>> Facturas(Guid id) =>
-        (await catalogo.Facturas.AsNoTracking().Where(f => f.TenantId == id).OrderByDescending(f => f.Periodo).ToListAsync())
-            .Select(f => new FacturaDto(f.Numero, f.Periodo, f.Emitida.ToString("dd/MM/yyyy"), f.Vence.ToString("dd/MM/yyyy"), f.Colaboradores, f.Subtotal, f.Igv, f.Subtotal + f.Igv, f.Estado, f.SunatEstado)).ToList();
+    public Task<List<FacturaDto>> Facturas(Guid id) => FacturaDto.ListaAsync(catalogo, id, 120);
+
+    /// <summary>Tarjeta registrada (sin token) y cobros del tenant: aprobados, rechazados, reintentos y por confirmar.</summary>
+    [HttpGet("tenants/{id:guid}/payments")]
+    public async Task<ActionResult<PagosCuenta>> Pagos(Guid id, [FromServices] PasarelaIzipay pasarela)
+    {
+        if (!await catalogo.Tenants.AnyAsync(t => t.Id == id)) return NotFound();
+        var m = await catalogo.MediosPago.AsNoTracking().FirstOrDefaultAsync(x => x.TenantId == id && x.Activo);
+        var lista = await catalogo.Cobros.AsNoTracking().Where(c => c.TenantId == id).OrderByDescending(c => c.CreadoEn).Take(100).ToListAsync();
+        return new PagosCuenta(pasarela.Modo, pasarela.Configurado, m is null ? null : PagosController.Dto(m), lista.Select(PagosController.Dto).ToList(), PagosController.TextoAutorizacion);
+    }
+
+    /// <summary>Cobra ahora una factura con la tarjeta del tenant (fuera del calendario de reintentos).</summary>
+    [HttpPost("tenants/{id:guid}/invoices/{numero}/charge")]
+    [Authorize(Policy = Politicas.PlataformaAdmin)]
+    public async Task<ActionResult<CobroDto>> Cobrar(Guid id, string numero, [FromServices] CobrosFacturas cobros)
+    {
+        var f = await catalogo.Facturas.FirstOrDefaultAsync(x => x.TenantId == id && x.Numero == numero);
+        if (f is null) return NotFound();
+        Cobro c;
+        try { c = await cobros.CobrarAsync(f, OrigenesCobro.Consola, User.Identity?.Name ?? "Consola", null, DateTime.UtcNow); }
+        catch (InvalidOperationException e) { return Problem(e.Message, statusCode: 409); }
+        if (c.Estado == EstadosCobro.Aprobado) await cicloVida.EjecutarAsync(DateTime.UtcNow, id, User.Identity?.Name ?? "Consola");
+        Olvidar(id);
+        return PagosController.Dto(c);
+    }
+
+    /// <summary>Resuelve a mano un cobro que quedó por confirmar (tras revisarlo en el panel de Izipay).</summary>
+    [HttpPost("tenants/{id:guid}/payments/{cobroId:int}/resolve")]
+    [Authorize(Policy = Politicas.PlataformaAdmin)]
+    public async Task<ActionResult<CobroDto>> Resolver(Guid id, int cobroId, [FromQuery] bool aprobado, [FromServices] CobrosFacturas cobros)
+    {
+        var c = await catalogo.Cobros.FirstOrDefaultAsync(x => x.TenantId == id && x.Id == cobroId);
+        if (c is null) return NotFound();
+        if (c.Estado is not (EstadosCobro.PorConfirmar or EstadosCobro.Procesando)) return Problem("El cobro ya está resuelto.", statusCode: 409);
+        var f = await catalogo.Facturas.FirstAsync(x => x.Id == c.FacturaId);
+        c.Actor = User.Identity?.Name ?? "Consola";
+        await cobros.AplicarAsync(c, f, aprobado
+            ? new ResultadoCobro(EstadosCobro.Aprobado, "00", "Confirmado en el panel de Izipay", c.CodigoAutorizacion, c.Referencia)
+            : new ResultadoCobro(EstadosCobro.Rechazado, null, "No aprobado según el panel de Izipay", null, null), DateTime.UtcNow);
+        if (aprobado) await cicloVida.EjecutarAsync(DateTime.UtcNow, id, c.Actor);
+        Olvidar(id);
+        return PagosController.Dto(c);
+    }
 
     [HttpGet("tenants/{id:guid}/admins")]
     public async Task<ActionResult<List<AdminTenant>>> Admins(Guid id)

@@ -28,6 +28,8 @@ public class Colaborador : IEntidadTenant
     // Datos de la ficha; opcionales.
     public string? EmailCorporativo { get; set; }
     public string? Telefono { get; set; }
+    /// <summary>Anexo o teléfono de oficina (directorio de Mi Portal).</summary>
+    public string? Anexo { get; set; }
     public DateOnly? Nacimiento { get; set; }
     public string? Direccion { get; set; }
     public string? Carrera { get; set; }
@@ -163,6 +165,23 @@ public class FilaCatalogo : IEntidadTenant
     public int Id { get; set; }
     public string Clave { get; set; } = "";
     public string Datos { get; set; } = "{}";
+    public DateTime ActualizadoEn { get; set; } = DateTime.UtcNow;
+    public string ModificadoPor { get; set; } = "";
+}
+
+/// <summary>
+/// Registro de un módulo sin tabla propia (KPI, beneficios, cursos, tickets, dashboards…), guardado como JSON por colección.
+/// Las reglas de cada colección (quién lee, quién escribe, módulo requerido) están en Services/ColeccionesModulo.cs.
+/// ColaboradorId identifica al dueño en las colecciones de registros propios (canjes, avance de cursos, tickets…).
+/// </summary>
+public class RegistroModulo : IEntidadTenant
+{
+    public Guid TenantId { get; set; }
+    public int Id { get; set; }
+    public string Coleccion { get; set; } = "";
+    public int? ColaboradorId { get; set; }
+    public string Datos { get; set; } = "{}";
+    public DateTime CreadoEn { get; set; } = DateTime.UtcNow;
     public DateTime ActualizadoEn { get; set; } = DateTime.UtcNow;
     public string ModificadoPor { get; set; } = "";
 }

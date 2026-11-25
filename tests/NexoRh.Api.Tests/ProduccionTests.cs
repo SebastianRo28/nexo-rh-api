@@ -29,6 +29,8 @@ public class ProduccionTests(ApiFixture api)
             "PublicoController.VerMarca", "PublicoController.VerArchivo", "AuthController.Soporte",
             // El proxy pregunta si puede emitir el certificado de un dominio propio (solo responde 200 o 404).
             "PublicoController.PermitirCertificado",
+            // Notificaciones de Izipay (IPN): sin sesión, autenticadas por la firma HMAC del payload.
+            "IpnIzipayController.Notificar",
             // Consola del proveedor: login con doble factor (solo en admin.{dominio}).
             "PlataformaAuthController.Login", "PlataformaAuthController.Verificar",
             // Solo responden en Development (404 en cualquier otro entorno).

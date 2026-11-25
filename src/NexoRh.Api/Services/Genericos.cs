@@ -49,7 +49,7 @@ public class Genericos
     /// y <paramref name="valoresDe"/> devuelve los valores de referencia de otro catálogo (primer campo).
     /// </summary>
     public Dictionary<string, string[]> ValidarFila(Catalogo cat, JsonElement entrada, IEnumerable<JsonObject> otras,
-        Func<string, IEnumerable<string>> valoresDe, out JsonObject limpia)
+        Func<string, IEnumerable<string>> valoresDe, out JsonObject limpia, IReadOnlyList<string>? departamentos = null)
     {
         var e = new Dictionary<string, string[]>();
         limpia = [];
@@ -98,6 +98,13 @@ public class Genericos
                         if (fijas is not null && !fijas.Contains(s)) { e[c.Key] = [$"{c.Label}: opción no válida."]; continue; }
                         if (fuente?.StartsWith("catalogo:") == true && !valoresDe(fuente[9..]).Contains(s.Split(" · ")[0].Trim(), StringComparer.OrdinalIgnoreCase))
                         { e[c.Key] = [$"{c.Label}: “{s}” no existe."]; continue; }
+                        // "departamentos": ubigeo vigente (sin distinguir tildes; se guarda el nombre oficial). Sin ubigeo publicado, se acepta.
+                        if (fuente == "departamentos" && departamentos is { Count: > 0 } && s.Length > 0)
+                        {
+                            var oficial = departamentos.FirstOrDefault(d => Controllers.Ubigeo.Igual(d, s));
+                            if (oficial is null) { e[c.Key] = [$"{c.Label}: elige un departamento de la lista."]; continue; }
+                            s = oficial;
+                        }
                     }
                     limpia[c.Key] = s;
                     break;

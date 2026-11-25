@@ -45,6 +45,7 @@ var csNegocio = config.GetConnectionString("Nexo") ?? throw new InvalidOperation
 var csCatalogo = config.GetConnectionString("Catalogo") ?? CadenaCatalogo(csNegocio);
 builder.Services.Configure<OpcionesPlataforma>(config.GetSection("Plataforma"));
 builder.Services.AddMemoryCache();
+builder.Services.AddScoped<NexoRh.Api.Controllers.ServicioUbigeo>();
 builder.Services.AddSingleton<CadenasConexion>();
 builder.Services.AddScoped<ContextoTenant>();
 // DNS para verificar dominios propios y remitentes: el real en producción; en desarrollo y pruebas, uno en memoria.
@@ -161,6 +162,10 @@ builder.Services.AddSingleton<MetricasTenants>();
 builder.Services.AddSingleton<TrabajosAprovisionamiento>();
 builder.Services.AddScoped<ConsultasPlataforma>();
 builder.Services.AddScoped<CicloVidaTenants>();
+builder.Services.Configure<OpcionesIzipay>(builder.Configuration.GetSection("Izipay"));
+builder.Services.AddHttpClient<PasarelaIzipay>(c => c.Timeout = TimeSpan.FromSeconds(40));
+builder.Services.AddSingleton<TokensTarjeta>();
+builder.Services.AddScoped<CobrosFacturas>();
 builder.Services.AddSingleton<MudanzaBaseDedicada>();
 builder.Services.AddHostedService<CicloVidaEnSegundoPlano>();
 
@@ -234,6 +239,7 @@ if (config.GetValue("BaseDatos:MigrarAlIniciar", desarrollo))
         var cat = scope.ServiceProvider.GetRequiredService<CatalogoDbContext>();
         await cat.Database.MigrateAsync();
         await SemillaPlataforma.CargarAsync(cat, config, desarrollo || app.Environment.IsEnvironment("Pruebas"), app.Logger);
+        await SemillaPlataforma.CargarUbigeoAsync(cat, app.Logger);
     }
     var aprovisionador = app.Services.GetRequiredService<AprovisionadorTenants>();
     await aprovisionador.MigrarNegocioAsync();
@@ -269,11 +275,12 @@ if (!desarrollo && config.GetValue("Seguridad:ForzarHttps", true))
     app.UseHttpsRedirection();
 }
 // Cabeceras de seguridad. La API solo devuelve JSON y archivos; el frontend (si la API lo sirve) solo carga sus propios
-// archivos y la fuente de Google Fonts. Angular inserta los estilos de cada componente, por eso style-src admite inline.
+// archivos, la fuente de Google Fonts y el formulario de pago de Izipay (registro de tarjeta en Estado de cuenta). Angular
+// inserta los estilos de cada componente, por eso style-src admite inline.
 const string CspApi = "default-src 'none'; frame-ancestors 'none'";
-const string CspWeb = "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
-               "font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self'; object-src 'none'; " +
-               "base-uri 'self'; form-action 'self'; frame-ancestors 'none'";
+const string CspWeb = "default-src 'self'; script-src 'self' https://*.izipay.pe; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://*.izipay.pe; " +
+               "font-src 'self' https://fonts.gstatic.com https://*.izipay.pe; img-src 'self' data: blob: https://*.izipay.pe; connect-src 'self' https://*.izipay.pe; " +
+               "frame-src https://*.izipay.pe; object-src 'none'; base-uri 'self'; form-action 'self' https://*.izipay.pe; frame-ancestors 'none'";
 app.Use(async (ctx, next) =>
 {
     var h = ctx.Response.Headers;

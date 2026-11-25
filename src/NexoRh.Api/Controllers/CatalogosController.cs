@@ -19,7 +19,7 @@ namespace NexoRh.Api.Controllers;
 [ApiController]
 [Route("api/catalogos")]
 [Authorize]
-public class CatalogosController(NexoDbContext db, Genericos genericos, Auditoria auditoria) : ControllerBase
+public class CatalogosController(NexoDbContext db, Genericos genericos, Auditoria auditoria, ServicioUbigeo ubigeo) : ControllerBase
 {
     private static JsonObject Fila(FilaCatalogo f)
     {
@@ -75,7 +75,8 @@ public class CatalogosController(NexoDbContext db, Genericos genericos, Auditori
             var k = oc.Campos[0].Key;
             return todas.Where(f => f.Clave == otro).Select(f => Genericos.Clave(JsonNode.Parse(f.Datos)!.AsObject(), k));
         }
-        var errores = genericos.ValidarFila(cat, entrada, otras, ValoresDe, out var limpia);
+        var departamentos = cat.Campos.Any(c => Genericos.Fuente(c) == "departamentos") ? (await ubigeo.DepartamentosAsync()).Select(d => d.Nombre).ToList() : null;
+        var errores = genericos.ValidarFila(cat, entrada, otras, ValoresDe, out var limpia, departamentos);
         if (errores.Count > 0) return ValidationProblem(new ValidationProblemDetails(errores) { Title = errores.Values.First()[0] });
 
         await using var tx = await db.Database.BeginTransactionAsync();

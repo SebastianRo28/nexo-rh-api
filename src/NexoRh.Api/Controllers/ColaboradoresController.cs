@@ -28,7 +28,8 @@ public partial class ColaboradoresController(NexoDbContext db, Auditoria auditor
     {
         var todos = await db.Colaboradores.AsNoTracking().OrderBy(c => c.Apellidos).ThenBy(c => c.Nombres).ToListAsync();
         var visibles = Alcance(todos);
-        return todos.Select(c => ADto(c, todos, visibles.Contains(c.Id))).ToList();
+        var recintos = await Recintos();
+        return todos.Select(c => ADto(c, todos, visibles.Contains(c.Id), recintos)).ToList();
     }
 
     [HttpGet("{id:int}")]
@@ -37,7 +38,7 @@ public partial class ColaboradoresController(NexoDbContext db, Auditoria auditor
         var todos = await db.Colaboradores.AsNoTracking().ToListAsync();
         var c = todos.FirstOrDefault(x => x.Id == id);
         if (c is null) return NotFound();
-        return ADto(c, todos, Alcance(todos).Contains(id));
+        return ADto(c, todos, Alcance(todos).Contains(id), await Recintos());
     }
 
     [HttpPost]
@@ -52,7 +53,7 @@ public partial class ColaboradoresController(NexoDbContext db, Auditoria auditor
         auditoria.Registrar($"Colaborador #{c.Id}", "Crear", c, actual: "Creado");
         await db.SaveChangesAsync();
         var todos = await db.Colaboradores.AsNoTracking().ToListAsync();
-        return CreatedAtAction(nameof(Obtener), new { id = c.Id }, ADto(c, todos, true));
+        return CreatedAtAction(nameof(Obtener), new { id = c.Id }, ADto(c, todos, true, await Recintos()));
     }
 
     [HttpPut("{id:int}")]
@@ -71,14 +72,16 @@ public partial class ColaboradoresController(NexoDbContext db, Auditoria auditor
             auditoria.Registrar($"Colaborador #{c.Id}", "Modificar", c, k, antes[k], v);
         await db.SaveChangesAsync();
         var todos = await db.Colaboradores.AsNoTracking().ToListAsync();
-        return ADto(c, todos, true);
+        return ADto(c, todos, true, await Recintos());
     }
 
     // --- Permisos -------------------------------------------------------------------------------------------------
     /// <summary>Ids cuyos datos completos puede ver el usuario actual.</summary>
     private HashSet<int> Alcance(List<Colaborador> todos) => Services.Alcance.Calcular(User, todos.Select(c => (c.Id, c.JefeId)));
 
-    private static ColaboradorDto ADto(Colaborador c, List<Colaborador> todos, bool completo)
+    private Task<Dictionary<int, string>> Recintos() => db.Recintos.AsNoTracking().ToDictionaryAsync(r => r.Id, r => r.Nombre);
+
+    private static ColaboradorDto ADto(Colaborador c, List<Colaborador> todos, bool completo, Dictionary<int, string> recintos)
     {
         var jefe = todos.FirstOrDefault(x => x.Id == c.JefeId);
         var dto = new ColaboradorDto
@@ -87,11 +90,16 @@ public partial class ColaboradoresController(NexoDbContext db, Auditoria auditor
             Ingreso = Fechas.Texto(c.Ingreso), JefeId = c.JefeId, Reservado = !completo,
             Documento = completo ? c.Documento : "••••" + c.Documento[^Math.Min(3, c.Documento.Length)..],
             SueldoNeto = completo ? c.SueldoNeto : null,
+            Contacto = new ContactoDto
+            {
+                Email = c.EmailCorporativo, Anexo = c.Anexo, Sede = c.RecintoId is { } r && recintos.TryGetValue(r, out var sede) ? sede : null,
+                Cumpleanos = c.Nacimiento is { } n ? n.ToString("dd/MM") : null,
+            },
         };
         dto.Detalle = completo
             ? new DetalleDto
             {
-                TipoDocumento = c.TipoDocumento, EmailCorporativo = c.EmailCorporativo, Telefono = c.Telefono, Nacimiento = Fechas.Texto(c.Nacimiento),
+                TipoDocumento = c.TipoDocumento, EmailCorporativo = c.EmailCorporativo, Telefono = c.Telefono, Anexo = c.Anexo, Nacimiento = Fechas.Texto(c.Nacimiento),
                 Direccion = c.Direccion, Carrera = c.Carrera, Institucion = c.Institucion, PlanSalud = c.PlanSalud, Pension = c.Pension, Cuspp = c.Cuspp,
                 Banco = c.Banco, FormaPago = c.FormaPago, Supervisor = jefe is null ? null : $"{jefe.Apellidos}, {jefe.Nombres}", SueldoBase = c.SueldoBase,
                 Contrato = c.Contrato, Jornada = c.Jornada, Sindicalizado = c.Sindicalizado, Aviso = c.Aviso,
@@ -174,6 +182,7 @@ public partial class ColaboradoresController(NexoDbContext db, Auditoria auditor
         c.TipoDocumento = N(d.TipoDocumento) ?? c.TipoDocumento;
         c.EmailCorporativo = N(d.EmailCorporativo)?.ToLowerInvariant();
         c.Telefono = N(d.Telefono);
+        c.Anexo = N(d.Anexo);
         c.Nacimiento = Fechas.TryLeer(d.Nacimiento, out var n) ? n : null;
         c.Direccion = N(d.Direccion);
         c.Carrera = N(d.Carrera);

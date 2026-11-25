@@ -710,6 +710,9 @@ namespace NexoRh.Api.Data.Migraciones
                     b.Property<DateTime>("ActualizadoEn")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("Anexo")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Apellidos")
                         .IsRequired()
                         .HasMaxLength(80)
@@ -2316,6 +2319,50 @@ namespace NexoRh.Api.Data.Migraciones
                     b.HasIndex("TenantId");
 
                     b.ToTable("Reconocimientos");
+                });
+
+            modelBuilder.Entity("NexoRh.Api.Domain.RegistroModulo", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("ActualizadoEn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("ColaboradorId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Coleccion")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<DateTime>("CreadoEn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Datos")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ModificadoPor")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<Guid>("TenantId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TenantId");
+
+                    b.HasIndex("Coleccion", "ColaboradorId");
+
+                    b.ToTable("RegistrosModulo");
                 });
 
             modelBuilder.Entity("NexoRh.Api.Domain.ReporteGuardado", b =>

@@ -1112,16 +1112,7 @@
           "key": "departamento",
           "label": "Departamento",
           "tipo": "select",
-          "opciones": [
-            "Lima",
-            "Arequipa",
-            "La Libertad",
-            "Piura",
-            "Cusco",
-            "Ica",
-            "Junín",
-            "Lambayeque"
-          ],
+          "opciones": "departamentos",
           "obligatorio": true,
           "requeridoSi": null,
           "unico": false,
@@ -2077,6 +2068,294 @@
         "exigirFoto": true,
         "exigirRadio": true,
         "radioDefecto": 150
+      }
+    },
+    {
+      "clave": "asistencia",
+      "campos": [
+        {
+          "key": "umbralSaldo",
+          "label": "Umbral de saldo de vacaciones (días)",
+          "tipo": "numero",
+          "opciones": null,
+          "min": 1,
+          "max": 120,
+          "obligatorio": false,
+          "dependeDe": null
+        },
+        {
+          "key": "permitirAdelanto",
+          "label": "Permitir adelanto de vacaciones",
+          "tipo": "switch",
+          "opciones": null,
+          "min": null,
+          "max": null,
+          "obligatorio": false,
+          "dependeDe": null
+        },
+        {
+          "key": "anticipacionDias",
+          "label": "Anticipación mínima de una solicitud (días)",
+          "tipo": "numero",
+          "opciones": null,
+          "min": 0,
+          "max": 60,
+          "obligatorio": false,
+          "dependeDe": null
+        },
+        {
+          "key": "sobretasaDomingo",
+          "label": "Sobretasa por trabajo en día de descanso (%)",
+          "tipo": "numero",
+          "opciones": null,
+          "min": 100,
+          "max": 300,
+          "obligatorio": false,
+          "dependeDe": null
+        },
+        {
+          "key": "horasJornada",
+          "label": "Horas de la jornada diaria",
+          "tipo": "numero",
+          "opciones": null,
+          "min": 1,
+          "max": 8,
+          "obligatorio": false,
+          "dependeDe": null
+        }
+      ],
+      "valores": {
+        "umbralSaldo": 30,
+        "permitirAdelanto": false,
+        "anticipacionDias": 3,
+        "sobretasaDomingo": 100,
+        "horasJornada": 8
+      }
+    },
+    {
+      "clave": "remuneraciones",
+      "campos": [
+        {
+          "key": "periodicidad",
+          "label": "Periodicidad de pago",
+          "tipo": "select",
+          "opciones": [
+            "Mensual",
+            "Quincenal"
+          ],
+          "min": null,
+          "max": null,
+          "obligatorio": true,
+          "dependeDe": null
+        },
+        {
+          "key": "diaPago",
+          "label": "Día de pago",
+          "tipo": "numero",
+          "opciones": null,
+          "min": 1,
+          "max": 31,
+          "obligatorio": false,
+          "dependeDe": null
+        },
+        {
+          "key": "diaAdelanto",
+          "label": "Día del adelanto quincenal",
+          "tipo": "numero",
+          "opciones": null,
+          "min": 1,
+          "max": 28,
+          "obligatorio": false,
+          "dependeDe": null
+        },
+        {
+          "key": "adelantoPct",
+          "label": "Porcentaje del adelanto",
+          "tipo": "numero",
+          "opciones": null,
+          "min": 10,
+          "max": 50,
+          "obligatorio": false,
+          "dependeDe": null
+        },
+        {
+          "key": "redondeo",
+          "label": "Redondeo del neto",
+          "tipo": "select",
+          "opciones": [
+            "Sin redondeo",
+            "Al décimo",
+            "Al entero"
+          ],
+          "min": null,
+          "max": null,
+          "obligatorio": true,
+          "dependeDe": null
+        },
+        {
+          "key": "boletaAportes",
+          "label": "Mostrar aportes del empleador en la boleta",
+          "tipo": "switch",
+          "opciones": null,
+          "min": null,
+          "max": null,
+          "obligatorio": false,
+          "dependeDe": null
+        },
+        {
+          "key": "boletaFirma",
+          "label": "Pedir firma de la boleta",
+          "tipo": "switch",
+          "opciones": null,
+          "min": null,
+          "max": null,
+          "obligatorio": false,
+          "dependeDe": null
+        },
+        {
+          "key": "boletaCorreo",
+          "label": "Enviar la boleta por correo",
+          "tipo": "switch",
+          "opciones": null,
+          "min": null,
+          "max": null,
+          "obligatorio": false,
+          "dependeDe": null
+        },
+        {
+          "key": "boletaPortal",
+          "label": "Publicar la boleta en Mi portal",
+          "tipo": "switch",
+          "opciones": null,
+          "min": null,
+          "max": null,
+          "obligatorio": false,
+          "dependeDe": null
+        }
+      ],
+      "valores": {
+        "periodicidad": "Mensual",
+        "diaPago": 31,
+        "diaAdelanto": 15,
+        "adelantoPct": 40,
+        "redondeo": "Sin redondeo",
+        "boletaAportes": true,
+        "boletaFirma": true,
+        "boletaCorreo": true,
+        "boletaPortal": true
+      }
+    },
+    {
+      "clave": "parametros-generales",
+      "campos": [
+        {
+          "key": "pais",
+          "label": "País",
+          "tipo": "select",
+          "opciones": [
+            "Perú",
+            "Chile",
+            "Colombia"
+          ],
+          "min": null,
+          "max": null,
+          "obligatorio": true,
+          "dependeDe": null
+        },
+        {
+          "key": "contabilidad",
+          "label": "Nombre de la contabilidad",
+          "tipo": "texto",
+          "opciones": null,
+          "min": null,
+          "max": null,
+          "obligatorio": false,
+          "dependeDe": null
+        },
+        {
+          "key": "alertaRecontratacion",
+          "label": "Días de alerta para recontratación",
+          "tipo": "numero",
+          "opciones": null,
+          "min": 0,
+          "max": 365,
+          "obligatorio": false,
+          "dependeDe": null
+        },
+        {
+          "key": "horas",
+          "label": "Horas laborales por semana",
+          "tipo": "numero",
+          "opciones": null,
+          "min": 1,
+          "max": 48,
+          "obligatorio": false,
+          "dependeDe": null
+        },
+        {
+          "key": "dias",
+          "label": "Días laborales",
+          "tipo": "numero",
+          "opciones": null,
+          "min": 1,
+          "max": 31,
+          "obligatorio": false,
+          "dependeDe": null
+        },
+        {
+          "key": "mailAdmin",
+          "label": "Remitente de los correos de administración",
+          "tipo": "texto",
+          "opciones": null,
+          "min": null,
+          "max": null,
+          "obligatorio": false,
+          "dependeDe": null
+        },
+        {
+          "key": "mailCumple",
+          "label": "Remitente de los correos de cumpleaños",
+          "tipo": "texto",
+          "opciones": null,
+          "min": null,
+          "max": null,
+          "obligatorio": false,
+          "dependeDe": null
+        },
+        {
+          "key": "mailEncuestas",
+          "label": "Remitente de los correos de encuestas",
+          "tipo": "texto",
+          "opciones": null,
+          "min": null,
+          "max": null,
+          "obligatorio": false,
+          "dependeDe": null
+        },
+        {
+          "key": "formatoNombre",
+          "label": "Formato del nombre",
+          "tipo": "select",
+          "opciones": [
+            "Apellido, Nombre",
+            "Nombre Apellido"
+          ],
+          "min": null,
+          "max": null,
+          "obligatorio": true,
+          "dependeDe": null
+        }
+      ],
+      "valores": {
+        "pais": "Perú",
+        "contabilidad": "",
+        "alertaRecontratacion": 30,
+        "horas": 43,
+        "dias": 30,
+        "mailAdmin": "Gestión de Personas",
+        "mailCumple": "Comunicaciones Internas",
+        "mailEncuestas": "Clima y Cultura",
+        "formatoNombre": "Apellido, Nombre"
       }
     }
   ]

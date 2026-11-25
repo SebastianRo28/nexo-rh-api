@@ -25,6 +25,7 @@ public partial class NexoDbContext(DbContextOptions<NexoDbContext> options, Cont
     public DbSet<Perfil> Perfiles => Set<Perfil>();
     public DbSet<Configuracion> Configuraciones => Set<Configuracion>();
     public DbSet<FilaCatalogo> FilasCatalogo => Set<FilaCatalogo>();
+    public DbSet<RegistroModulo> RegistrosModulo => Set<RegistroModulo>();
     public DbSet<PlantillaWorkflow> PlantillasWorkflow => Set<PlantillaWorkflow>();
     public DbSet<SolicitudWorkflow> SolicitudesWorkflow => Set<SolicitudWorkflow>();
     public DbSet<Reconocimiento> Reconocimientos => Set<Reconocimiento>();
@@ -167,6 +168,12 @@ public partial class NexoDbContext(DbContextOptions<NexoDbContext> options, Cont
         {
             e.Property(x => x.Clave).HasMaxLength(40).IsRequired();
             e.HasIndex(x => x.Clave);
+            e.Property(x => x.ModificadoPor).HasMaxLength(120);
+        });
+        b.Entity<RegistroModulo>(e =>
+        {
+            e.Property(x => x.Coleccion).HasMaxLength(40).IsRequired();
+            e.HasIndex(x => new { x.Coleccion, x.ColaboradorId });
             e.Property(x => x.ModificadoPor).HasMaxLength(120);
         });
         b.Entity<Configuracion>(e =>

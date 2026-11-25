@@ -1,0 +1,1230 @@
+{
+ "kpi-tipos": [
+  {
+   "ref": 1,
+   "id": 1,
+   "codigo": "VTA-MEN",
+   "nombre": "Ventas mensuales",
+   "unidad": "S/",
+   "sentido": "Mayor es mejor",
+   "meta": 120000,
+   "bono": 800,
+   "umbralPct": 80,
+   "topePct": 120,
+   "activo": true,
+   "colaboradores": [
+    4,
+    9
+   ]
+  },
+  {
+   "ref": 2,
+   "id": 2,
+   "codigo": "NPS-CLI",
+   "nombre": "Satisfacción de clientes (NPS)",
+   "unidad": "%",
+   "sentido": "Mayor es mejor",
+   "meta": 60,
+   "bono": 300,
+   "umbralPct": 80,
+   "topePct": 110,
+   "activo": true,
+   "colaboradores": [
+    9,
+    10
+   ]
+  },
+  {
+   "ref": 3,
+   "id": 3,
+   "codigo": "TKT-SLA",
+   "nombre": "Tickets resueltos dentro del SLA",
+   "unidad": "%",
+   "sentido": "Mayor es mejor",
+   "meta": 95,
+   "bono": 250,
+   "umbralPct": 90,
+   "topePct": 105,
+   "activo": true,
+   "colaboradores": [
+    3,
+    15
+   ]
+  },
+  {
+   "ref": 4,
+   "id": 4,
+   "codigo": "INV-DIF",
+   "nombre": "Diferencias de inventario",
+   "unidad": "%",
+   "sentido": "Menor es mejor",
+   "meta": 0.5,
+   "bono": 400,
+   "umbralPct": 80,
+   "topePct": 120,
+   "activo": true,
+   "colaboradores": [
+    1,
+    7
+   ]
+  }
+ ],
+ "kpi-datos": [
+  {
+   "id": 1,
+   "kpiId": 1,
+   "colaboradorId": 4,
+   "periodo": "02/2026",
+   "real": 131500
+  },
+  {
+   "id": 2,
+   "kpiId": 1,
+   "colaboradorId": 9,
+   "periodo": "02/2026",
+   "real": 92400
+  },
+  {
+   "id": 3,
+   "kpiId": 2,
+   "colaboradorId": 9,
+   "periodo": "02/2026",
+   "real": 64
+  },
+  {
+   "id": 4,
+   "kpiId": 2,
+   "colaboradorId": 10,
+   "periodo": "02/2026",
+   "real": 47
+  },
+  {
+   "id": 5,
+   "kpiId": 3,
+   "colaboradorId": 3,
+   "periodo": "02/2026",
+   "real": 97.2
+  },
+  {
+   "id": 6,
+   "kpiId": 3,
+   "colaboradorId": 15,
+   "periodo": "02/2026",
+   "real": 93.1
+  },
+  {
+   "id": 7,
+   "kpiId": 4,
+   "colaboradorId": 1,
+   "periodo": "02/2026",
+   "real": 0.42
+  },
+  {
+   "id": 8,
+   "kpiId": 4,
+   "colaboradorId": 7,
+   "periodo": "02/2026",
+   "real": 0.71
+  },
+  {
+   "id": 9,
+   "kpiId": 1,
+   "colaboradorId": 4,
+   "periodo": "03/2026",
+   "real": 108300
+  },
+  {
+   "id": 10,
+   "kpiId": 2,
+   "colaboradorId": 10,
+   "periodo": "03/2026",
+   "real": 58
+  },
+  {
+   "id": 11,
+   "kpiId": 3,
+   "colaboradorId": 3,
+   "periodo": "03/2026",
+   "real": 96
+  },
+  {
+   "id": 12,
+   "kpiId": 4,
+   "colaboradorId": 1,
+   "periodo": "03/2026",
+   "real": 0.38
+  }
+ ],
+ "beneficios": [
+  {
+   "ref": 1,
+   "id": 1,
+   "nombre": "Tarde libre",
+   "descripcion": "Media jornada libre, coordinada con tu jefatura.",
+   "categoria": "Tiempo libre",
+   "puntos": 600,
+   "stock": null,
+   "icono": "clock"
+  },
+  {
+   "ref": 2,
+   "id": 2,
+   "nombre": "Día de cumpleaños",
+   "descripcion": "El día de tu cumpleaños es libre.",
+   "categoria": "Tiempo libre",
+   "puntos": 0,
+   "stock": null,
+   "icono": "gift"
+  },
+  {
+   "ref": 3,
+   "id": 3,
+   "nombre": "Mes de gimnasio",
+   "descripcion": "Membresía de un mes en la cadena aliada.",
+   "categoria": "Bienestar",
+   "puntos": 900,
+   "stock": 5,
+   "icono": "heart"
+  },
+  {
+   "ref": 4,
+   "id": 4,
+   "nombre": "Sesión de nutrición",
+   "descripcion": "Consulta virtual con nutricionista.",
+   "categoria": "Bienestar",
+   "puntos": 350,
+   "stock": 10,
+   "icono": "smile"
+  },
+  {
+   "ref": 5,
+   "id": 5,
+   "nombre": "Curso online",
+   "descripcion": "Un curso a elección en la plataforma de e-learning aliada.",
+   "categoria": "Educación",
+   "puntos": 1500,
+   "stock": null,
+   "icono": "grad"
+  },
+  {
+   "ref": 6,
+   "id": 6,
+   "nombre": "Vale de almuerzo",
+   "descripcion": "Vale de S/ 40 en restaurantes afiliados.",
+   "categoria": "Alimentación",
+   "puntos": 250,
+   "stock": 20,
+   "icono": "coins"
+  },
+  {
+   "ref": 7,
+   "id": 7,
+   "nombre": "Entradas al cine (2)",
+   "descripcion": "Dos entradas 2D para cualquier función.",
+   "categoria": "Entretenimiento",
+   "puntos": 400,
+   "stock": 0,
+   "icono": "play"
+  }
+ ],
+ "beneficio-puntos": [
+  {
+   "colaboradorId": 0,
+   "puntos": 1800,
+   "motivo": "Saldo inicial 2026"
+  }
+ ],
+ "beneficio-canjes": [
+  {
+   "id": 1,
+   "beneficioId": 6,
+   "fecha": "20/02/2026",
+   "puntos": 250,
+   "estado": "Entregado",
+   "colaboradorId": 0
+  },
+  {
+   "id": 2,
+   "beneficioId": 4,
+   "fecha": "05/01/2026",
+   "puntos": 350,
+   "estado": "Entregado",
+   "colaboradorId": 0
+  }
+ ],
+ "cursos": [
+  {
+   "ref": 1,
+   "id": 1,
+   "nombre": "Seguridad y salud en el trabajo · 1er trimestre",
+   "categoria": "SST",
+   "horas": 2,
+   "vence": "31/03/2026",
+   "obligatorio": true,
+   "modulos": [
+    "Política y reglamento interno de SST",
+    "Identificación de peligros (IPERC)",
+    "Plan de respuesta ante emergencias"
+   ]
+  },
+  {
+   "ref": 2,
+   "id": 2,
+   "nombre": "Prevención del hostigamiento sexual laboral",
+   "categoria": "Cumplimiento",
+   "horas": 1.5,
+   "vence": "30/04/2026",
+   "obligatorio": true,
+   "modulos": [
+    "Marco legal (Ley 27942)",
+    "Cómo identificarlo",
+    "Canales de denuncia"
+   ]
+  },
+  {
+   "ref": 3,
+   "id": 3,
+   "nombre": "Protección de datos personales",
+   "categoria": "Cumplimiento",
+   "horas": 1,
+   "vence": "15/02/2026",
+   "obligatorio": true,
+   "modulos": [
+    "Ley 29733 en la práctica",
+    "Casos en Finanzas"
+   ]
+  },
+  {
+   "ref": 4,
+   "id": 4,
+   "nombre": "Excel avanzado para finanzas",
+   "categoria": "Técnico",
+   "horas": 8,
+   "vence": null,
+   "obligatorio": false,
+   "modulos": [
+    "Tablas dinámicas",
+    "Power Query",
+    "Modelos de flujo de caja",
+    "Dashboards"
+   ]
+  },
+  {
+   "ref": 5,
+   "id": 5,
+   "nombre": "Comunicación efectiva",
+   "categoria": "Habilidades",
+   "horas": 3,
+   "vence": null,
+   "obligatorio": false,
+   "modulos": [
+    "Escucha activa",
+    "Feedback",
+    "Presentaciones breves"
+   ]
+  }
+ ],
+ "curso-avance": [
+  {
+   "ref": 1,
+   "cursoId": 1,
+   "colaboradorId": 0,
+   "inscrito": true,
+   "hechos": [
+    0
+   ],
+   "completado": null
+  },
+  {
+   "ref": 2,
+   "cursoId": 2,
+   "colaboradorId": 0,
+   "inscrito": true,
+   "hechos": [],
+   "completado": null
+  },
+  {
+   "ref": 3,
+   "cursoId": 3,
+   "colaboradorId": 0,
+   "inscrito": true,
+   "hechos": [
+    0,
+    1
+   ],
+   "completado": "10/02/2026"
+  }
+ ],
+ "evaluaciones": [
+  {
+   "id": 2,
+   "nombre": "Evaluación de desempeño 2026-I",
+   "periodo": "Ene–Jun 2026",
+   "cierre": "15/07/2026",
+   "evaluador": "Navarro Ríos, Gonzalo",
+   "estado": "Autoevaluación pendiente",
+   "auto": {},
+   "jefe": {},
+   "comentarioJefe": "",
+   "colaboradorId": 0
+  },
+  {
+   "id": 1,
+   "nombre": "Evaluación de desempeño 2025",
+   "periodo": "Ene–Dic 2025",
+   "cierre": "31/01/2026",
+   "evaluador": "Navarro Ríos, Gonzalo",
+   "estado": "Cerrada",
+   "auto": {
+    "Trabajo en equipo": 4,
+    "Orientación a resultados": 4,
+    "Comunicación efectiva": 3,
+    "Adaptabilidad": 4
+   },
+   "jefe": {
+    "Trabajo en equipo": 5,
+    "Orientación a resultados": 4,
+    "Comunicación efectiva": 4,
+    "Adaptabilidad": 4
+   },
+   "comentarioJefe": "Excelente cierre anual y conciliaciones sin observaciones. Para 2026: liderar la automatización de reportes de tesorería.",
+   "colaboradorId": 0
+  }
+ ],
+ "tickets": [
+  {
+   "id": 412,
+   "asunto": "¿Cuándo se paga la gratificación de julio?",
+   "categoria": "Remuneraciones",
+   "colaborador": "Ortiz Ramírez, Daniela",
+   "abierto": "16/03/2026 09:12",
+   "estado": "Abierto",
+   "asignado": "",
+   "mensajes": [
+    {
+     "autor": "Ortiz Ramírez, Daniela",
+     "rrhh": false,
+     "fecha": "16/03/2026 09:12",
+     "texto": "Hola, ingresé en marzo. ¿Me corresponde gratificación en julio y cuánto sería aproximadamente?"
+    }
+   ],
+   "colaboradorId": 12
+  },
+  {
+   "id": 411,
+   "asunto": "Mi boleta de febrero no muestra las horas extras",
+   "categoria": "Remuneraciones",
+   "colaborador": "Gutiérrez Paredes, Javier",
+   "abierto": "13/03/2026 18:40",
+   "estado": "En proceso",
+   "asignado": "Lucía Cáceres",
+   "mensajes": [
+    {
+     "autor": "Gutiérrez Paredes, Javier",
+     "rrhh": false,
+     "fecha": "13/03/2026 18:40",
+     "texto": "Trabajé 6 horas extras el 21/02 por inventario y no aparecen en la boleta."
+    },
+    {
+     "autor": "Lucía Cáceres",
+     "rrhh": true,
+     "fecha": "14/03/2026 10:05",
+     "texto": "Hola Javier, lo estamos revisando con tu jefatura. Te confirmamos hoy."
+    }
+   ],
+   "colaboradorId": 7
+  },
+  {
+   "id": 409,
+   "asunto": "Cambio de cuenta bancaria",
+   "categoria": "Documentos",
+   "colaborador": "Zapata Ugarte, Miguel",
+   "abierto": "11/03/2026 12:20",
+   "estado": "Abierto",
+   "asignado": "",
+   "mensajes": [
+    {
+     "autor": "Zapata Ugarte, Miguel",
+     "rrhh": false,
+     "fecha": "11/03/2026 12:20",
+     "texto": "Abrí una cuenta en otro banco. ¿Qué necesito para que me depositen ahí desde abril?"
+    }
+   ],
+   "colaboradorId": 15
+  },
+  {
+   "id": 405,
+   "asunto": "Saldo de vacaciones",
+   "categoria": "Vacaciones y asistencia",
+   "colaborador": "Medina Torres, Sofía",
+   "abierto": "05/03/2026 08:55",
+   "estado": "Resuelto",
+   "asignado": "Rodrigo Paredes",
+   "mensajes": [
+    {
+     "autor": "Medina Torres, Sofía",
+     "rrhh": false,
+     "fecha": "05/03/2026 08:55",
+     "texto": "¿Cuántos días de vacaciones tengo disponibles?"
+    },
+    {
+     "autor": "Rodrigo Paredes",
+     "rrhh": true,
+     "fecha": "05/03/2026 11:30",
+     "texto": "Hola Sofía, puedes verlo en Mi Portal › Portal, en \"Vacaciones disponibles\". Al 16/03 tienes 29 días."
+    }
+   ],
+   "colaboradorId": 10
+  }
+ ],
+ "dashboards": [
+  {
+   "id": 14,
+   "nombre": "Demografía de colaboradores",
+   "descripcion": "Género, edad y nacionalidad de la dotación.",
+   "editado": "18/03/2026"
+  },
+  {
+   "id": 13,
+   "nombre": "Rotación 2026",
+   "descripcion": "Entradas, salidas y tasa de rotación mensual.",
+   "editado": "17/03/2026"
+  },
+  {
+   "id": 12,
+   "nombre": "Ausentismo",
+   "descripcion": "Días no trabajados por tipo de ausencia.",
+   "editado": "16/03/2026"
+  },
+  {
+   "id": 11,
+   "nombre": "Horas extras",
+   "descripcion": "Horas extras por área y por mes.",
+   "editado": "15/03/2026"
+  },
+  {
+   "id": 10,
+   "nombre": "Costo de planilla",
+   "descripcion": "Gasto mensual por centro de costo.",
+   "editado": "14/03/2026"
+  },
+  {
+   "id": 9,
+   "nombre": "Vacaciones",
+   "descripcion": "Saldos y vacaciones tomadas por área.",
+   "editado": "13/03/2026"
+  },
+  {
+   "id": 8,
+   "nombre": "Headcount vs. plan",
+   "descripcion": "Posiciones ocupadas frente al plan.",
+   "editado": "12/03/2026"
+  },
+  {
+   "id": 7,
+   "nombre": "Bandas salariales",
+   "descripcion": "Ubicación en banda por cargo.",
+   "editado": "11/03/2026"
+  },
+  {
+   "id": 6,
+   "nombre": "Clima laboral 2025",
+   "descripcion": "Resultados de la encuesta de clima.",
+   "editado": "10/03/2026"
+  },
+  {
+   "id": 5,
+   "nombre": "Capacitaciones",
+   "descripcion": "Horas de capacitación por colaborador.",
+   "editado": "09/03/2026"
+  },
+  {
+   "id": 4,
+   "nombre": "SST · Evidencias",
+   "descripcion": "Evidencias vigentes, por vencer y vencidas.",
+   "editado": "08/03/2026"
+  },
+  {
+   "id": 3,
+   "nombre": "Antigüedad",
+   "descripcion": "Distribución por años en la empresa.",
+   "editado": "07/03/2026"
+  },
+  {
+   "id": 2,
+   "nombre": "Dashboard nuevo",
+   "descripcion": "",
+   "editado": "06/03/2026"
+  },
+  {
+   "id": 1,
+   "nombre": "Dotación por división",
+   "descripcion": "Colaboradores por división y área.",
+   "editado": "05/03/2026"
+  }
+ ],
+ "widgets": [
+  {
+   "id": 0,
+   "nombre": "Distribución por género",
+   "tipo": "Anillo",
+   "origen": "Nexo AI",
+   "editado": "16/03/2026"
+  },
+  {
+   "id": 1,
+   "nombre": "Rango etario",
+   "tipo": "Circular",
+   "origen": "Librería Nexo",
+   "editado": "15/03/2026"
+  },
+  {
+   "id": 2,
+   "nombre": "Top 5 mayores edades",
+   "tipo": "Embudo",
+   "origen": "Nexo AI",
+   "editado": "14/03/2026"
+  },
+  {
+   "id": 3,
+   "nombre": "Nacionalidad",
+   "tipo": "Circular",
+   "origen": "Librería Nexo",
+   "editado": "13/03/2026"
+  },
+  {
+   "id": 4,
+   "nombre": "Colaboradores por división",
+   "tipo": "Barras",
+   "origen": "Propio",
+   "editado": "12/03/2026"
+  },
+  {
+   "id": 5,
+   "nombre": "Total colaboradores",
+   "tipo": "Tarjeta",
+   "origen": "Librería Nexo",
+   "editado": "11/03/2026"
+  }
+ ],
+ "bandas-niveles": [
+  {
+   "nombre": "Nivel 1 · Operativo",
+   "codigo": "N1",
+   "cargos": 9,
+   "minimo": 1615,
+   "objetivo": 1900,
+   "maximo": 2280
+  },
+  {
+   "nombre": "Nivel 2 · Asistente",
+   "codigo": "N2",
+   "cargos": 8,
+   "minimo": 2380,
+   "objetivo": 2800,
+   "maximo": 3360
+  },
+  {
+   "nombre": "Nivel 3 · Analista",
+   "codigo": "N3",
+   "cargos": 12,
+   "minimo": 3825,
+   "objetivo": 4500,
+   "maximo": 5400
+  },
+  {
+   "nombre": "Nivel 4 · Jefatura",
+   "codigo": "N4",
+   "cargos": 7,
+   "minimo": 6800,
+   "objetivo": 8000,
+   "maximo": 9600
+  },
+  {
+   "nombre": "Nivel 5 · Gerencia",
+   "codigo": "N5",
+   "cargos": 3,
+   "minimo": 11900,
+   "objetivo": 14000,
+   "maximo": 16800
+  }
+ ],
+ "correos-automaticos": [
+  {
+   "id": 0,
+   "nombre": "Notificación de Cumpleaños",
+   "tipo": "Cumpleaños",
+   "autor": "Comunicaciones Internas",
+   "activo": true,
+   "hora": "09:00"
+  },
+  {
+   "id": 1,
+   "nombre": "Saludo de Aniversario laboral",
+   "tipo": "Aniversario",
+   "autor": "Gestión de Personas",
+   "activo": true,
+   "hora": "09:00"
+  },
+  {
+   "id": 2,
+   "nombre": "Saludo de Cumpleaños",
+   "tipo": "Cumpleaños",
+   "autor": "Comunicaciones Internas",
+   "activo": true,
+   "hora": "09:00"
+  },
+  {
+   "id": 3,
+   "nombre": "Bienvenida",
+   "tipo": "Ingreso",
+   "autor": "Gestión de Personas",
+   "activo": false,
+   "hora": "09:00"
+  }
+ ],
+ "portal-portadas": [
+  {
+   "id": 0,
+   "titulo": "Bienvenidos al nuevo portal Nexo RH",
+   "visible": true,
+   "descripcion": "Tus boletas, solicitudes y documentos, ahora en un solo lugar.",
+   "vinculo": "Link"
+  },
+  {
+   "id": 1,
+   "titulo": "Campaña de vacunación 2026",
+   "visible": true,
+   "descripcion": "Inscríbete hasta el 20/03/2026.",
+   "vinculo": "Link"
+  },
+  {
+   "id": 2,
+   "titulo": "Encuesta de clima laboral",
+   "visible": true,
+   "descripcion": "Tu opinión es anónima.",
+   "vinculo": "Link"
+  },
+  {
+   "id": 3,
+   "titulo": "Aniversario 2025",
+   "visible": false,
+   "descripcion": "Gracias por un gran año.",
+   "vinculo": "Sin vínculo"
+  }
+ ],
+ "portal-accesos": [
+  {
+   "id": 0,
+   "titulo": "Vacaciones disponibles",
+   "visible": true,
+   "descripcion": "Saldo y botón Solicitar",
+   "vinculo": "Link"
+  },
+  {
+   "id": 1,
+   "titulo": "Últimas boletas de pago",
+   "visible": true,
+   "descripcion": "Links a los últimos meses",
+   "vinculo": "Link"
+  },
+  {
+   "id": 2,
+   "titulo": "Generar certificado o documento",
+   "visible": true,
+   "descripcion": "Plantillas habilitadas para el colaborador",
+   "vinculo": "Link"
+  },
+  {
+   "id": 3,
+   "titulo": "Solicitar permiso",
+   "visible": true,
+   "descripcion": "Abre la solicitud de permiso",
+   "vinculo": "Link"
+  },
+  {
+   "id": 4,
+   "titulo": "Beneficios",
+   "visible": true,
+   "descripcion": "Catálogo de beneficios",
+   "vinculo": "Link"
+  },
+  {
+   "id": 5,
+   "titulo": "Crear solicitud de workflow",
+   "visible": false,
+   "descripcion": "Solicitudes flexibles",
+   "vinculo": "Link"
+  }
+ ],
+ "reconocimiento-valores": [
+  {
+   "nombre": "Vamos por más!",
+   "tono": "primary",
+   "icono": "trend",
+   "activo": true
+  },
+  {
+   "nombre": "Nos mueve la excelencia",
+   "tono": "success",
+   "icono": "star",
+   "activo": true
+  },
+  {
+   "nombre": "Pasión por el servicio",
+   "tono": "orange",
+   "icono": "heart",
+   "activo": true
+  },
+  {
+   "nombre": "Al infinito y más allá",
+   "tono": "violet",
+   "icono": "rocket",
+   "activo": true
+  }
+ ],
+ "archivos-pago": [
+  {
+   "id": 0,
+   "nombre": "PLAME 03-2026",
+   "tipo": "PLAME",
+   "comprobantes": "Boleta de Pago",
+   "cantidad": 13,
+   "mes": "03-2026",
+   "estado": "Desactualizado",
+   "creadoPor": "Lucía Cáceres",
+   "origen": "Manual",
+   "fecha": "13/03/2026",
+   "haberes": 213645,
+   "descuentos": 35892.36
+  },
+  {
+   "id": 1,
+   "nombre": "Transfer bancario 03-2026",
+   "tipo": "Transfer bancario",
+   "comprobantes": "Boleta de Pago",
+   "cantidad": 13,
+   "mes": "03-2026",
+   "estado": "Actualizado",
+   "creadoPor": "Rodrigo Paredes",
+   "origen": "Manual",
+   "fecha": "13/03/2026",
+   "haberes": 213607.5,
+   "descuentos": 35886.06
+  },
+  {
+   "id": 2,
+   "nombre": "AFPnet 03-2026",
+   "tipo": "AFPnet",
+   "comprobantes": "Boleta de Pago",
+   "cantidad": 13,
+   "mes": "03-2026",
+   "estado": "Desactualizado",
+   "creadoPor": "Rodrigo Paredes",
+   "origen": "Manual",
+   "fecha": "13/03/2026",
+   "haberes": 213570,
+   "descuentos": 35879.76
+  },
+  {
+   "id": 3,
+   "nombre": "Libro de Remuneraciones 03-2026",
+   "tipo": "Libro de Remuneraciones",
+   "comprobantes": "Boleta de Pago",
+   "cantidad": 13,
+   "mes": "03-2026",
+   "estado": "Actualizado",
+   "creadoPor": "Lucía Cáceres",
+   "origen": "Manual",
+   "fecha": "13/03/2026",
+   "haberes": 213532.5,
+   "descuentos": 35873.46
+  },
+  {
+   "id": 4,
+   "nombre": "Transfer bancario 03-2026",
+   "tipo": "Transfer bancario",
+   "comprobantes": "Liquidación",
+   "cantidad": 1,
+   "mes": "03-2026",
+   "estado": "Desactualizado",
+   "creadoPor": "Rodrigo Paredes",
+   "origen": "Manual",
+   "fecha": "13/03/2026",
+   "haberes": 9690,
+   "descuentos": 1627.92
+  },
+  {
+   "id": 5,
+   "nombre": "Contabilidad 03-2026",
+   "tipo": "Contabilidad",
+   "comprobantes": "Boleta de Pago, Liquidación",
+   "cantidad": 13,
+   "mes": "03-2026",
+   "estado": "Actualizado",
+   "creadoPor": "Rodrigo Paredes",
+   "origen": "Manual",
+   "fecha": "13/03/2026",
+   "haberes": 213457.5,
+   "descuentos": 35860.86
+  },
+  {
+   "id": 6,
+   "nombre": "PLAME 02-2026",
+   "tipo": "PLAME",
+   "comprobantes": "Boleta de Pago",
+   "cantidad": 13,
+   "mes": "02-2026",
+   "estado": "Actualizado",
+   "creadoPor": "Lucía Cáceres",
+   "origen": "Manual",
+   "fecha": "27/02/2026",
+   "haberes": 213420,
+   "descuentos": 35854.56
+  },
+  {
+   "id": 7,
+   "nombre": "Transfer bancario 02-2026",
+   "tipo": "Transfer bancario",
+   "comprobantes": "Boleta de Pago",
+   "cantidad": 13,
+   "mes": "02-2026",
+   "estado": "Actualizado",
+   "creadoPor": "Rodrigo Paredes",
+   "origen": "Manual",
+   "fecha": "27/02/2026",
+   "haberes": 213382.5,
+   "descuentos": 35848.26
+  },
+  {
+   "id": 8,
+   "nombre": "AFPnet 02-2026",
+   "tipo": "AFPnet",
+   "comprobantes": "Boleta de Pago",
+   "cantidad": 13,
+   "mes": "02-2026",
+   "estado": "Actualizado",
+   "creadoPor": "Rodrigo Paredes",
+   "origen": "Manual",
+   "fecha": "27/02/2026",
+   "haberes": 213345,
+   "descuentos": 35841.96
+  },
+  {
+   "id": 9,
+   "nombre": "Libro de Remuneraciones 02-2026",
+   "tipo": "Libro de Remuneraciones",
+   "comprobantes": "Boleta de Pago",
+   "cantidad": 13,
+   "mes": "02-2026",
+   "estado": "Actualizado",
+   "creadoPor": "Lucía Cáceres",
+   "origen": "Manual",
+   "fecha": "27/02/2026",
+   "haberes": 213307.5,
+   "descuentos": 35835.66
+  },
+  {
+   "id": 10,
+   "nombre": "Transfer bancario 02-2026",
+   "tipo": "Transfer bancario",
+   "comprobantes": "Liquidación",
+   "cantidad": 1,
+   "mes": "02-2026",
+   "estado": "Actualizado",
+   "creadoPor": "Rodrigo Paredes",
+   "origen": "Manual",
+   "fecha": "27/02/2026",
+   "haberes": 9465,
+   "descuentos": 1590.12
+  },
+  {
+   "id": 11,
+   "nombre": "Contabilidad 02-2026",
+   "tipo": "Contabilidad",
+   "comprobantes": "Boleta de Pago, Liquidación",
+   "cantidad": 13,
+   "mes": "02-2026",
+   "estado": "Actualizado",
+   "creadoPor": "Rodrigo Paredes",
+   "origen": "Manual",
+   "fecha": "27/02/2026",
+   "haberes": 213232.5,
+   "descuentos": 35823.06
+  },
+  {
+   "id": 12,
+   "nombre": "PLAME 01-2026",
+   "tipo": "PLAME",
+   "comprobantes": "Boleta de Pago",
+   "cantidad": 13,
+   "mes": "01-2026",
+   "estado": "Actualizado",
+   "creadoPor": "Lucía Cáceres",
+   "origen": "Manual",
+   "fecha": "30/01/2026",
+   "haberes": 213195,
+   "descuentos": 35816.76
+  },
+  {
+   "id": 13,
+   "nombre": "Transfer bancario 01-2026",
+   "tipo": "Transfer bancario",
+   "comprobantes": "Boleta de Pago",
+   "cantidad": 13,
+   "mes": "01-2026",
+   "estado": "Actualizado",
+   "creadoPor": "Rodrigo Paredes",
+   "origen": "Manual",
+   "fecha": "30/01/2026",
+   "haberes": 213157.5,
+   "descuentos": 35810.46
+  },
+  {
+   "id": 14,
+   "nombre": "AFPnet 01-2026",
+   "tipo": "AFPnet",
+   "comprobantes": "Boleta de Pago",
+   "cantidad": 13,
+   "mes": "01-2026",
+   "estado": "Actualizado",
+   "creadoPor": "Rodrigo Paredes",
+   "origen": "Manual",
+   "fecha": "30/01/2026",
+   "haberes": 213120,
+   "descuentos": 35804.16
+  },
+  {
+   "id": 15,
+   "nombre": "Libro de Remuneraciones 01-2026",
+   "tipo": "Libro de Remuneraciones",
+   "comprobantes": "Boleta de Pago",
+   "cantidad": 13,
+   "mes": "01-2026",
+   "estado": "Actualizado",
+   "creadoPor": "Lucía Cáceres",
+   "origen": "Manual",
+   "fecha": "30/01/2026",
+   "haberes": 213082.5,
+   "descuentos": 35797.86
+  },
+  {
+   "id": 16,
+   "nombre": "Transfer bancario 01-2026",
+   "tipo": "Transfer bancario",
+   "comprobantes": "Liquidación",
+   "cantidad": 1,
+   "mes": "01-2026",
+   "estado": "Actualizado",
+   "creadoPor": "Rodrigo Paredes",
+   "origen": "Manual",
+   "fecha": "30/01/2026",
+   "haberes": 9240,
+   "descuentos": 1552.32
+  },
+  {
+   "id": 17,
+   "nombre": "Contabilidad 01-2026",
+   "tipo": "Contabilidad",
+   "comprobantes": "Boleta de Pago, Liquidación",
+   "cantidad": 13,
+   "mes": "01-2026",
+   "estado": "Actualizado",
+   "creadoPor": "Rodrigo Paredes",
+   "origen": "Manual",
+   "fecha": "30/01/2026",
+   "haberes": 213007.5,
+   "descuentos": 35785.26
+  },
+  {
+   "id": 18,
+   "nombre": "PLAME 12-2025",
+   "tipo": "PLAME",
+   "comprobantes": "Boleta de Pago",
+   "cantidad": 13,
+   "mes": "12-2025",
+   "estado": "Actualizado",
+   "creadoPor": "Lucía Cáceres",
+   "origen": "Manual",
+   "fecha": "22/12/2025",
+   "haberes": 212970,
+   "descuentos": 35778.96
+  },
+  {
+   "id": 19,
+   "nombre": "Transfer bancario 12-2025",
+   "tipo": "Transfer bancario",
+   "comprobantes": "Boleta de Pago",
+   "cantidad": 13,
+   "mes": "12-2025",
+   "estado": "Actualizado",
+   "creadoPor": "Rodrigo Paredes",
+   "origen": "Manual",
+   "fecha": "22/12/2025",
+   "haberes": 212932.5,
+   "descuentos": 35772.66
+  },
+  {
+   "id": 20,
+   "nombre": "AFPnet 12-2025",
+   "tipo": "AFPnet",
+   "comprobantes": "Boleta de Pago",
+   "cantidad": 13,
+   "mes": "12-2025",
+   "estado": "Actualizado",
+   "creadoPor": "Rodrigo Paredes",
+   "origen": "Manual",
+   "fecha": "22/12/2025",
+   "haberes": 212895,
+   "descuentos": 35766.36
+  },
+  {
+   "id": 21,
+   "nombre": "Libro de Remuneraciones 12-2025",
+   "tipo": "Libro de Remuneraciones",
+   "comprobantes": "Boleta de Pago",
+   "cantidad": 13,
+   "mes": "12-2025",
+   "estado": "Actualizado",
+   "creadoPor": "Lucía Cáceres",
+   "origen": "Manual",
+   "fecha": "22/12/2025",
+   "haberes": 212857.5,
+   "descuentos": 35760.06
+  },
+  {
+   "id": 22,
+   "nombre": "Transfer bancario 12-2025",
+   "tipo": "Transfer bancario",
+   "comprobantes": "Liquidación",
+   "cantidad": 1,
+   "mes": "12-2025",
+   "estado": "Actualizado",
+   "creadoPor": "Rodrigo Paredes",
+   "origen": "Manual",
+   "fecha": "22/12/2025",
+   "haberes": 9015,
+   "descuentos": 1514.52
+  }
+ ],
+ "api-claves": [
+  {
+   "id": 12,
+   "descripcion": "Integración ERP contable",
+   "limitarEmpresas": true,
+   "empresas": "Comercial Andina S.A.C.",
+   "ultimaIp": "190.12.45.201",
+   "ultimoAcceso": "18/03/2026 07:58",
+   "creada": "14/01/2026",
+   "permisos": {
+    "Subir documentos": "No",
+    "Ver y descargar documentos de empleados": "No",
+    "Empleados": "No",
+    "Contabilidad": "Escritura",
+    "Asistencia": "No",
+    "Ítems": "No",
+    "Vacaciones": "No",
+    "Selección": "No",
+    "Evaluaciones": "No"
+   },
+   "token": "nx_live_8f2a…4b0a"
+  },
+  {
+   "id": 9,
+   "descripcion": "Sincronización control de acceso",
+   "limitarEmpresas": false,
+   "empresas": "Todas",
+   "ultimaIp": "200.48.110.7",
+   "ultimoAcceso": "17/03/2026 23:10",
+   "creada": "02/11/2025",
+   "permisos": {
+    "Subir documentos": "No",
+    "Ver y descargar documentos de empleados": "No",
+    "Empleados": "Lectura",
+    "Contabilidad": "No",
+    "Asistencia": "Escritura",
+    "Ítems": "No",
+    "Vacaciones": "No",
+    "Selección": "No",
+    "Evaluaciones": "No"
+   },
+   "token": "nx_live_3b7c…4d22"
+  },
+  {
+   "id": 4,
+   "descripcion": "BI – Power BI",
+   "limitarEmpresas": false,
+   "empresas": "Todas",
+   "ultimaIp": "181.65.3.14",
+   "ultimoAcceso": "10/03/2026 06:00",
+   "creada": "20/06/2025",
+   "permisos": {
+    "Subir documentos": "No",
+    "Ver y descargar documentos de empleados": "No",
+    "Empleados": "Lectura",
+    "Contabilidad": "No",
+    "Asistencia": "No",
+    "Ítems": "No",
+    "Vacaciones": "Lectura",
+    "Selección": "No",
+    "Evaluaciones": "No"
+   },
+   "token": "nx_live_c09d…4a8e"
+  }
+ ],
+ "api-ips": [
+  {
+   "ip": "190.12.45.201",
+   "descripcion": "Servidor ERP contable",
+   "creada": "14/01/2026"
+  },
+  {
+   "ip": "200.48.110.7",
+   "descripcion": "Control de acceso – sede central",
+   "creada": "02/11/2025"
+  }
+ ],
+ "api-webhooks": [
+  {
+   "id": 0,
+   "url": "https://erp.empresa.pe/hooks/colaboradores",
+   "evento": "Colaborador creado",
+   "activo": true
+  },
+  {
+   "id": 1,
+   "url": "https://acceso.empresa.pe/hooks/bajas",
+   "evento": "Trabajo terminado",
+   "activo": false
+  }
+ ],
+ "$referencias": {
+  "kpi-datos": {
+   "kpiId": "kpi-tipos"
+  },
+  "beneficio-canjes": {
+   "beneficioId": "beneficios"
+  },
+  "curso-avance": {
+   "cursoId": "cursos"
+  }
+ },
+ "$anexos": {
+  "0": "214",
+  "1": "301",
+  "2": "120",
+  "3": "410",
+  "4": "512",
+  "5": "100",
+  "6": "220",
+  "7": "305",
+  "8": "415",
+  "9": "510",
+  "10": "520",
+  "11": "210",
+  "12": "125",
+  "13": "310",
+  "14": "222",
+  "15": "420"
+ }
+}

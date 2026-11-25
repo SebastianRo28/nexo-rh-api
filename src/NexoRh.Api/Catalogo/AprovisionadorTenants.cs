@@ -84,6 +84,7 @@ public class AprovisionadorTenants(IServiceScopeFactory scopes, IConfiguration c
                 await SemillaSst.CargarAsync(db);
                 await SemillaAdministracion.CargarAsync(db);
                 await SemillaReporteria.CargarAsync(db);
+                await SemillaModulos.CargarAsync(db);
             }
             else await SemillaBase.CargarProduccionAsync(db, config, sp.GetRequiredService<RelojAsistencia>(), log, adminDesdeConfig);
         }

@@ -84,6 +84,9 @@ public class Factura
     public string Estado { get; set; } = "Pendiente";
     /// <summary>Estado ante SUNAT (Pendiente de integración, Aceptada…).</summary>
     public string SunatEstado { get; set; } = "Pendiente de integración";
+    public DateTime? PagadaEn { get; set; }
+    /// <summary>Cómo se pagó (“Tarjeta VS •••• 1111”, “Registro manual”).</summary>
+    public string? MedioPago { get; set; }
 }
 
 public static class Modulos

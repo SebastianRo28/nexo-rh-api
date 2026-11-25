@@ -46,6 +46,26 @@ public static class SemillaPlataforma
         await catalogo.SaveChangesAsync();
         log.LogInformation("Se creó el administrador de la consola ({Correo}); enrolará el doble factor en su primer ingreso.", correo);
     }
+
+    /// <summary>
+    /// Publica la primera versión del catálogo global "ubigeo" con la lista oficial del INEI (Lista_Ubigeos_INEI.csv de
+    /// datosabiertos.gob.pe, en Catalogo/Datos) si todavía no tiene ninguna. Las siguientes se publican desde la consola.
+    /// </summary>
+    public static async Task CargarUbigeoAsync(CatalogoDbContext catalogo, ILogger log)
+    {
+        if (await catalogo.VersionesCatalogo.AnyAsync(v => v.Clave == Controllers.Ubigeo.Clave)) return;
+        var ruta = Path.Combine(AppContext.BaseDirectory, "Catalogo", "Datos", "ubigeo-inei.csv");
+        if (!File.Exists(ruta)) { log.LogWarning("No se encontró {Ruta}: el catálogo de ubigeo queda sin publicar.", ruta); return; }
+        var lineas = (await File.ReadAllTextAsync(ruta)).Replace("\r", "").Split('\n', StringSplitOptions.RemoveEmptyEntries);
+        catalogo.VersionesCatalogo.Add(new VersionCatalogo
+        {
+            Clave = Controllers.Ubigeo.Clave, Version = "v2026.1", VigenteDesde = new DateOnly(2026, 1, 1), Registros = lineas.Length - 1,
+            Notas = "Lista oficial de ubigeos del INEI (Plataforma Nacional de Datos Abiertos, Lista_Ubigeos_INEI.csv).",
+            Contenido = string.Join("\n", lineas), PublicadaPor = "Semilla",
+        });
+        await catalogo.SaveChangesAsync();
+        log.LogInformation("Se publicó el catálogo de ubigeo v2026.1 ({Registros} distritos).", lineas.Length - 1);
+    }
 }
 
 /// <summary>Requests por tenant en la última hora (latencia p95 y errores 5xx) para Salud (P-SA.10). En memoria.</summary>
