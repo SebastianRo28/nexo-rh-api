@@ -78,21 +78,90 @@ public static class SemillaComunicacion
 
         if (!await db.Publicaciones.AnyAsync())
         {
-            Publicacion P(string titulo, string texto, string? publicar, string? expira, bool fijada, int vistas, int comentarios, int reacciones, string autor = "Gestión de Personas") => new()
+            Publicacion P(string titulo, string texto, string? publicar, string? expira, bool fijada, int vistas, string autor = "Gestión de Personas") => new()
             {
                 Titulo = titulo, Texto = texto, PublicarEl = publicar is null ? null : F(publicar), Expira = expira is null ? null : F(expira), Fijada = fijada,
-                Vistas = vistas, Comentarios = comentarios, Reacciones = reacciones, Autor = autor,
+                Vistas = vistas, Autor = autor,
             };
             db.Publicaciones.AddRange(
-                P("Nuevos beneficios de salud", "Desde febrero el plan de salud incluye atención dental y oftalmológica sin costo adicional para titulares.", "15/02/2026", null, false, 14, 4, 22),
-                P("Bienvenidos a Nexo RH", "¡Bienvenidos a Nexo RH! Desde este mes tus boletas de pago, solicitudes de vacaciones y documentos estarán disponibles en el portal. Si tienes dudas, escríbenos por el chat de Servicio al Colaborador.", "02/03/2026", null, true, 16, 8, 39),
-                P("Recordatorio: cierre de la sede el 13/03", "Recordatorio: el viernes 13/03/2026 la sede central cerrará a las 3:00 p. m. por mantenimiento eléctrico. El trabajo remoto está habilitado para todas las áreas administrativas.", "09/03/2026", "14/03/2026", false, 15, 1, 11, "Comunicaciones Internas"),
-                P("Campaña de vacunación 2026", "Del 20 de marzo al 20 de abril tendremos vacunación contra la influenza en todas las sedes. Inscríbete con tu jefatura.", "20/03/2026", "20/04/2026", false, 0, 0, 0),
-                P("Resultados de la encuesta de clima 2025", "Compartimos los principales resultados y el plan de acción por área.", null, null, false, 0, 0, 0),
-                P("Feriados de abril", "Jueves y Viernes Santo (02 y 03/04) son feriados nacionales.", null, null, false, 0, 0, 0));
+                P("Nuevos beneficios de salud", "Desde febrero el plan de salud incluye atención dental y oftalmológica sin costo adicional para titulares.", "15/02/2026", null, false, 14),
+                P("Bienvenidos a Nexo RH", "¡Bienvenidos a Nexo RH! Desde este mes tus boletas de pago, solicitudes de vacaciones y documentos estarán disponibles en el portal. Si tienes dudas, escríbenos por el chat de Servicio al Colaborador.", "02/03/2026", null, true, 16),
+                P("Recordatorio: cierre de la sede el 13/03", "Recordatorio: el viernes 13/03/2026 la sede central cerrará a las 3:00 p. m. por mantenimiento eléctrico. El trabajo remoto está habilitado para todas las áreas administrativas.", "09/03/2026", "14/03/2026", false, 15, "Comunicaciones Internas"),
+                P("Campaña de vacunación 2026", "Del 20 de marzo al 20 de abril tendremos vacunación contra la influenza en todas las sedes. Inscríbete con tu jefatura.", "20/03/2026", "20/04/2026", false, 0),
+                P("Resultados de la encuesta de clima 2025", "Compartimos los principales resultados y el plan de acción por área.", null, null, false, 0),
+                P("Feriados de abril", "Jueves y Viernes Santo (02 y 03/04) son feriados nacionales.", null, null, false, 0));
             await db.SaveChangesAsync();
         }
+
+        if (!await db.ReaccionesMuro.AnyAsync() && !await db.ComentariosMuro.AnyAsync())
+        {
+            await InteraccionesAsync(db, cols);
+        }
     }
+
+    /// <summary>Comentarios de ejemplo del muro (se reparten en orden entre los elementos).</summary>
+    private static readonly string[] TextosComentario =
+    [
+        "¡Excelente noticia! Gracias por la información.", "Muy útil, ya revisé mis boletas en el portal.", "¡Felicitaciones, muy merecido!",
+        "Gracias por compartirlo.", "¿Desde cuándo aplica? Me interesa inscribirme.", "¡Así se hace, equipo!", "Súper práctico tener todo en un solo lugar.",
+        "Bien merecido, siempre dispuesto a ayudar.", "Gracias por el aviso.", "¡Qué buena iniciativa!",
+    ];
+
+    /// <summary>
+    /// Reacciones y comentarios de ejemplo de colaboradores (sin usuario) en las publicaciones vigentes y los reconocimientos,
+    /// para que el muro de la empresa de ejemplo se vea con actividad. Determinista.
+    /// </summary>
+    private static async Task InteraccionesAsync(NexoDbContext db, List<Colaborador> cols)
+    {
+        var pubs = await db.Publicaciones.AsNoTracking().Where(p => p.PublicarEl != null).OrderBy(p => p.Id).ToListAsync();
+        var recs = await db.Reconocimientos.AsNoTracking().OrderBy(r => r.Id).ToListAsync();
+        // Cantidad de reacciones y comentarios por elemento: más en la publicación fijada.
+        var elementos = pubs.Select(p => (e: ElementosMuro.Publicacion, id: p.Id, r: p.Fijada ? 39 : p.Vistas > 0 ? 6 + p.Id % 13 : 0, c: p.Fijada ? 5 : p.Vistas > 0 ? p.Id % 3 : 0))
+            .Concat(recs.Select(r => (e: ElementosMuro.Reconocimiento, id: r.Id, r: 3 + r.Id * 5 % 11, c: r.Id % 3)))
+            .ToList();
+        var k = 0;
+        foreach (var (e, id, nr, nc) in elementos)
+        {
+            for (var i = 0; i < Math.Min(nr, cols.Count); i++)
+            {
+                var c = cols[(id * 7 + i) % cols.Count];
+                if (db.ReaccionesMuro.Local.Any(x => x.Elemento == e && x.ElementoId == id && x.ColaboradorId == c.Id)) continue;
+                db.ReaccionesMuro.Add(new ReaccionMuro { Elemento = e, ElementoId = id, ColaboradorId = c.Id, Tipo = (i % 6) switch { 2 => "love", 4 => "smile", _ => "like" } });
+            }
+            for (var i = 0; i < Math.Min(nc, cols.Count); i++, k++)
+            {
+                var c = cols[(id * 3 + i * 5 + 1) % cols.Count];
+                db.ComentariosMuro.Add(new ComentarioMuro
+                {
+                    Elemento = e, ElementoId = id, ColaboradorId = c.Id, Autor = $"{c.Nombres} {c.Apellidos}", Texto = TextosComentario[k % TextosComentario.Length],
+                    Fecha = DateTime.UtcNow.AddHours(-(nc - i) * 3),
+                });
+            }
+        }
+        await db.SaveChangesAsync();
+    }
+
+    /// <summary>
+    /// Para la migración MuroInteracciones: pasa los contadores fijos que tenían las publicaciones a reacciones y comentarios
+    /// de colaboradores, así las empresas existentes no pierden la actividad que veían en su muro.
+    /// </summary>
+    public const string SqlMigrarContadores = """
+        INSERT INTO ReaccionesMuro (TenantId, Elemento, ElementoId, UsuarioId, ColaboradorId, Tipo, Fecha)
+        SELECT p.TenantId, 'pub', p.Id, NULL, c.Id, CASE c.Orden % 6 WHEN 2 THEN 'love' WHEN 4 THEN 'smile' ELSE 'like' END, SYSUTCDATETIME()
+        FROM Publicaciones p
+        CROSS APPLY (SELECT TOP (p.Reacciones) x.Id, ROW_NUMBER() OVER (ORDER BY x.Id) AS Orden FROM Colaboradores x WHERE x.TenantId = p.TenantId ORDER BY x.Id) c
+        WHERE p.Reacciones > 0;
+
+        INSERT INTO ComentariosMuro (TenantId, Elemento, ElementoId, UsuarioId, ColaboradorId, Autor, Texto, Fecha)
+        SELECT p.TenantId, 'pub', p.Id, NULL, c.Id, LEFT(c.Nombres + ' ' + c.Apellidos, 170),
+            CASE (c.Orden + p.Id) % 6 WHEN 0 THEN N'¡Excelente noticia! Gracias por la información.' WHEN 1 THEN N'Muy útil, ya revisé mis boletas en el portal.'
+                WHEN 2 THEN N'Gracias por compartirlo.' WHEN 3 THEN N'Súper práctico tener todo en un solo lugar.' WHEN 4 THEN N'Gracias por el aviso.'
+                ELSE N'¡Qué buena iniciativa!' END,
+            DATEADD(HOUR, -3 * (p.Comentarios - c.Orden + 1), SYSUTCDATETIME())
+        FROM Publicaciones p
+        CROSS APPLY (SELECT TOP (p.Comentarios) x.Id, x.Nombres, x.Apellidos, ROW_NUMBER() OVER (ORDER BY x.Id DESC) AS Orden FROM Colaboradores x WHERE x.TenantId = p.TenantId ORDER BY x.Id DESC) c
+        WHERE p.Comentarios > 0;
+        """;
 }
 
 /// <summary>Preguntas de las plantillas de encuesta (las mismas opciones que ofrece el frontend).</summary>

@@ -96,7 +96,7 @@ public class CuentaController(NexoDbContext db, CatalogoDbContext catalogo, Cont
             uso = await limites.UsoAsync();
             foreach (var l in uso.Where(l => l.Estado != "ok"))
                 banners.Add(new("limite", l.Estado == "bloqueado"
-                    ? $"Llegaste al límite de tu plan en {l.Nombre.ToLowerInvariant()} ({l.Usado:0.###} de {l.Maximo:0.###} {l.Unidad})."
+                    ? $"Llegaste al límite de tu plan en {l.Nombre.ToLowerInvariant()} ({$"{l.Usado:0.###} de {l.Maximo:0.###} {l.Unidad}".TrimEnd()})."
                     : $"Usaste el {l.Pct} % de {l.Nombre.ToLowerInvariant()} de tu plan.", "Ampliar plan", cuenta));
             if ((await ajustes.DeAsync(TenantId)).ModoImplementacion)
             {

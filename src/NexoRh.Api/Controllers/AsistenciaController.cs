@@ -99,14 +99,85 @@ public partial class AsistenciaController(NexoDbContext db, Auditoria auditoria,
         if (p.Tipo == "Entrada" && ultima?.Tipo == "Entrada") return Error("tipo", $"Ya registraste tu entrada a las {ultima.Hora}.");
         if (ultima is not null && string.CompareOrdinal(hora, ultima.Hora) < 0) return Error("hora", $"La hora no puede ser anterior a tu última marca ({ultima.Hora}).");
 
+        // Portal web: ubicación real del navegador y selfie, según Configuraciones › Métodos de marcación.
+        var cfg = await configuraciones.LeerAsync("ca-metodos");
+        var web = metodo == "Web";
+        byte[]? foto = null;
+        if (!string.IsNullOrEmpty(p.Foto) && (foto = LeerFoto(p.Foto)) is null) return Error("foto", "La foto no es válida. Vuelve a tomarla.");
+        if (web && cfg["fotoWeb"] is true && foto is null)
+        {
+            await RegistrarFallida(id, rc.Id, hoy, hora, p.Tipo!, metodo, "Sin foto", null);
+            return Error("foto", "Toma una selfie para registrar tu marca.");
+        }
+        double lat = rc.Lat, lng = rc.Lng;
+        int? distancia = null, precision = null;
+        var dentro = true;
+        if (web && cfg["ubicacionWeb"] is true)
+        {
+            if (p.Lat is not (>= -90.0 and <= 90.0) || p.Lng is not (>= -180.0 and <= 180.0))
+                return Error("ubicacion", "Permite el acceso a tu ubicación en el navegador para registrar la marca.");
+            (lat, lng) = (p.Lat.Value, p.Lng.Value);
+            precision = p.Precision is >= 0 and < 100_000 ? (int)Math.Round(p.Precision.Value) : null;
+            distancia = (int)Math.Round(Geo.Metros(rc.Lat, rc.Lng, lat, lng));
+            // El GPS de un navegador puede errar unas decenas de metros: se tolera hasta 50 m de su precisión.
+            dentro = distancia <= rc.Radio + Math.Min(precision ?? 0, 50);
+            if (!dentro && cfg["exigirRadio"] is true)
+            {
+                await RegistrarFallida(id, rc.Id, hoy, hora, p.Tipo!, metodo, "Fuera del radio", distancia);
+                return Error("ubicacion", $"Estás a {distancia:N0} m de {rc.Nombre} y el radio permitido es de {rc.Radio} m. Acércate al recinto o avisa a tu jefatura.");
+            }
+        }
+
         var m = new Marca
         {
-            ColaboradorId = id, RecintoId = rc.Id, Fecha = hoy, Hora = hora, Tipo = p.Tipo!, Metodo = metodo, Lat = rc.Lat, Lng = rc.Lng,
-            Observacion = metodo == "Web" ? "Desde Mi Portal" : "",
+            ColaboradorId = id, RecintoId = rc.Id, Fecha = hoy, Hora = hora, Tipo = p.Tipo!, Metodo = metodo, Lat = lat, Lng = lng,
+            DentroRadio = dentro, Distancia = distancia, Precision = precision, Foto = foto is not null,
+            Observacion = web ? "Desde Mi Portal" : "",
         };
         db.Marcas.Add(m);
         await db.SaveChangesAsync();
+        if (foto is not null)
+        {
+            db.FotosMarca.Add(new FotoMarca { MarcaId = m.Id, Contenido = foto });
+            await db.SaveChangesAsync();
+        }
         return Mapeo.Marca(m);
+    }
+
+    /// <summary>Selfie de una marca. La ven quienes pueden ver los datos de esa persona.</summary>
+    [HttpGet("marcas/{id:int}/foto")]
+    public async Task<IActionResult> FotoDeMarca(int id)
+    {
+        var m = await db.Marcas.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id);
+        if (m is null || !(await alcance.VisiblesAsync()).Contains(m.ColaboradorId)) return NotFound();
+        var f = await db.FotosMarca.AsNoTracking().FirstOrDefaultAsync(x => x.MarcaId == id);
+        if (f is null) return NotFound();
+        Response.Headers.CacheControl = "private, no-store";
+        return File(f.Contenido, "image/jpeg");
+    }
+
+    private const int MaxFoto = 400 * 1024;
+
+    /// <summary>JPEG en base64 de hasta 400 KB, o null si no es válido.</summary>
+    private static byte[]? LeerFoto(string texto)
+    {
+        var coma = texto.StartsWith("data:", StringComparison.Ordinal) ? texto.IndexOf(',') : -1;
+        if (coma >= 0 && !texto[..coma].Equals("data:image/jpeg;base64", StringComparison.OrdinalIgnoreCase)) return null;
+        var b64 = coma >= 0 ? texto[(coma + 1)..] : texto;
+        if (b64.Length > MaxFoto * 4 / 3 + 4) return null;
+        var buffer = new byte[b64.Length * 3 / 4 + 3];
+        if (!Convert.TryFromBase64String(b64, buffer, out var n) || n < 3) return null;
+        if (buffer[0] != 0xFF || buffer[1] != 0xD8 || buffer[2] != 0xFF) return null;
+        return buffer[..n];
+    }
+
+    private async Task RegistrarFallida(int colaboradorId, int recintoId, DateOnly fecha, string hora, string tipo, string metodo, string motivo, int? distancia)
+    {
+        db.MarcasFallidas.Add(new MarcaFallida
+        {
+            ColaboradorId = colaboradorId, RecintoId = recintoId, Fecha = fecha, Hora = hora, Tipo = tipo, Metodo = metodo, Motivo = motivo, Distancia = distancia,
+        });
+        await db.SaveChangesAsync();
     }
 
     /// <summary>Marca propia rechazada en el dispositivo (método desactivado, fuera del radio, sin foto).</summary>

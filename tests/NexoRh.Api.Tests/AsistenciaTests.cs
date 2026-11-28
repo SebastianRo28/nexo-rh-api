@@ -38,14 +38,94 @@ public class AsistenciaTests(ApiFixture api)
         var (correo, password) = await Usuarios.CrearConPassword(api, "Colaborador", 14);
         var c = await api.ClienteDe(correo, password);
         Assert.Equal(HttpStatusCode.BadRequest, (await c.PostAsJsonAsync("/api/asistencia/marcar", new { tipo = "Salida" })).StatusCode);
-        var r = await c.PostAsJsonAsync("/api/asistencia/marcar", new { tipo = "Entrada", hora = "06:00", fecha = "01/01/2020" });
+        var r = await c.PostAsJsonAsync("/api/asistencia/marcar", new { tipo = "Entrada", hora = "06:00", fecha = "01/01/2020", lat = Lat, lng = Lng });
         r.EnsureSuccessStatusCode();
         var m = await r.Content.ReadFromJsonAsync<JsonElement>();
         Assert.Equal("16/03/2026", m.GetProperty("fecha").GetString());
         Assert.NotEqual("06:00", m.GetProperty("hora").GetString());
         Assert.Equal(1, m.GetProperty("recintoId").GetInt32());
         Assert.Equal(HttpStatusCode.BadRequest, (await c.PostAsJsonAsync("/api/asistencia/marcar", new { tipo = "Entrada" })).StatusCode);
-        (await c.PostAsJsonAsync("/api/asistencia/marcar", new { tipo = "Salida" })).EnsureSuccessStatusCode();
+        (await c.PostAsJsonAsync("/api/asistencia/marcar", new { tipo = "Salida", lat = Lat, lng = Lng })).EnsureSuccessStatusCode();
+    }
+
+    // Recinto 1 de los datos de ejemplo (radio 150 m).
+    private const double Lat = -12.0912, Lng = -77.0225;
+
+    /// <summary>Colaborador nuevo (sin marcas ni cuenta), para no depender de los datos de ejemplo.</summary>
+    private async Task<int> NuevoColaborador()
+    {
+        var admin = await api.ClienteDe(ApiFixture.Admin);
+        var dni = Random.Shared.Next(10_000_000, 99_999_999).ToString();
+        var r = await admin.PostAsJsonAsync("/api/colaboradores", new
+        {
+            apellidos = "Marcación Prueba", nombres = "Test", documento = dni, cargo = "Analista de Planillas", division = "Administración",
+            area = "Personas", subArea = "Compensaciones", ingreso = "01/03/2026", sueldoNeto = 3000, detalle = new { tipoDocumento = "DNI" },
+        });
+        r.EnsureSuccessStatusCode();
+        return (await r.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("id").GetInt32();
+    }
+
+    [Fact]
+    public async Task Marcar_desde_el_portal_valida_la_ubicacion_real_contra_el_radio()
+    {
+        var col = await NuevoColaborador();
+        var (correo, password) = await Usuarios.CrearConPassword(api, "Colaborador", col);
+        var c = await api.ClienteDe(correo, password);
+        // Sin ubicación no se marca.
+        var sin = await c.PostAsJsonAsync("/api/asistencia/marcar", new { tipo = "Entrada", recintoId = 1 });
+        Assert.Equal(HttpStatusCode.BadRequest, sin.StatusCode);
+        // A ~1,1 km del recinto: rechazada y queda en Marcas Fallidas con la distancia.
+        var lejos = await c.PostAsJsonAsync("/api/asistencia/marcar", new { tipo = "Entrada", recintoId = 1, lat = Lat + 0.01, lng = Lng, precision = 20 });
+        Assert.Equal(HttpStatusCode.BadRequest, lejos.StatusCode);
+        var datos = await c.GetFromJsonAsync<JsonElement>("/api/asistencia");
+        var f = datos.GetProperty("fallidas").EnumerateArray().Single(x => x.GetProperty("motivo").GetString() == "Fuera del radio" && x.GetProperty("colaboradorId").GetInt32() == col);
+        Assert.InRange(f.GetProperty("distancia").GetInt32(), 1000, 1200);
+        // A ~100 m: se registra con las coordenadas del dispositivo.
+        var cerca = await c.PostAsJsonAsync("/api/asistencia/marcar", new { tipo = "Entrada", recintoId = 1, lat = Lat + 0.0009, lng = Lng, precision = 12.4 });
+        cerca.EnsureSuccessStatusCode();
+        var m = await cerca.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.True(m.GetProperty("dentroRadio").GetBoolean());
+        Assert.Equal(Lat + 0.0009, m.GetProperty("lat").GetDouble(), 6);
+        Assert.InRange(m.GetProperty("distancia").GetInt32(), 90, 110);
+        Assert.Equal(12, m.GetProperty("precision").GetInt32());
+    }
+
+    [Fact]
+    public async Task Marcar_con_selfie_guarda_la_foto_y_solo_la_ven_quienes_corresponde()
+    {
+        var admin = await api.ClienteDe(ApiFixture.Admin);
+        var col = await NuevoColaborador();
+        var (correo, password) = await Usuarios.CrearConPassword(api, "Colaborador", col);
+        var c = await api.ClienteDe(correo, password);
+        (await admin.PutAsJsonAsync("/api/configuracion/ca-metodos", new { fotoWeb = true })).EnsureSuccessStatusCode();
+        try
+        {
+            var sinFoto = await c.PostAsJsonAsync("/api/asistencia/marcar", new { tipo = "Entrada", recintoId = 1, lat = Lat, lng = Lng });
+            Assert.Equal(HttpStatusCode.BadRequest, sinFoto.StatusCode);
+            var datos = await c.GetFromJsonAsync<JsonElement>("/api/asistencia");
+            Assert.Contains(datos.GetProperty("fallidas").EnumerateArray(), x => x.GetProperty("motivo").GetString() == "Sin foto" && x.GetProperty("colaboradorId").GetInt32() == col);
+            // Lo que no es un JPEG se rechaza.
+            var png = "data:image/png;base64," + Convert.ToBase64String([0x89, 0x50, 0x4E, 0x47]);
+            Assert.Equal(HttpStatusCode.BadRequest, (await c.PostAsJsonAsync("/api/asistencia/marcar", new { tipo = "Entrada", recintoId = 1, lat = Lat, lng = Lng, foto = png })).StatusCode);
+
+            byte[] jpeg = [0xFF, 0xD8, 0xFF, 0xE0, 1, 2, 3, 4, 0xFF, 0xD9];
+            var r = await c.PostAsJsonAsync("/api/asistencia/marcar", new { tipo = "Entrada", recintoId = 1, lat = Lat, lng = Lng, foto = "data:image/jpeg;base64," + Convert.ToBase64String(jpeg) });
+            r.EnsureSuccessStatusCode();
+            var m = await r.Content.ReadFromJsonAsync<JsonElement>();
+            Assert.True(m.GetProperty("foto").GetBoolean());
+            var id = m.GetProperty("id").GetInt32();
+
+            Assert.Equal(jpeg, await c.GetByteArrayAsync($"/api/asistencia/marcas/{id}/foto"));
+            var deAdmin = await admin.GetAsync($"/api/asistencia/marcas/{id}/foto");
+            Assert.Equal("image/jpeg", deAdmin.Content.Headers.ContentType?.MediaType);
+            // Otro colaborador no la ve.
+            var (otro, clave) = await Usuarios.CrearConPassword(api, "Colaborador", 9);
+            Assert.Equal(HttpStatusCode.NotFound, (await (await api.ClienteDe(otro, clave)).GetAsync($"/api/asistencia/marcas/{id}/foto")).StatusCode);
+        }
+        finally
+        {
+            (await admin.PutAsJsonAsync("/api/configuracion/ca-metodos", new { fotoWeb = false })).EnsureSuccessStatusCode();
+        }
     }
 
     [Fact]

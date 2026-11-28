@@ -30,7 +30,7 @@ public class CatalogosTests(ApiFixture api)
         Assert.Equal(HttpStatusCode.BadRequest, (await admin.PostAsJsonAsync("/api/catalogos/empresas", empresa with { ruc = "123" })).StatusCode);            // patrón
         Assert.Equal(HttpStatusCode.BadRequest, (await admin.PostAsJsonAsync("/api/catalogos/empresas", empresa with { regimen = "Otro" })).StatusCode);       // opción
         Assert.Equal(HttpStatusCode.BadRequest, (await admin.PostAsJsonAsync("/api/catalogos/empresas", empresa with { razon = "" })).StatusCode);              // obligatorio
-        Assert.Equal(HttpStatusCode.BadRequest, (await admin.PostAsJsonAsync("/api/catalogos/empresas", empresa with { ruc = "20512345678" })).StatusCode);    // único
+        Assert.Equal(HttpStatusCode.BadRequest, (await admin.PostAsJsonAsync("/api/catalogos/empresas", empresa with { ruc = "20601234571" })).StatusCode);    // único (el RUC del tenant)
         Assert.Equal(HttpStatusCode.BadRequest, (await admin.PostAsJsonAsync("/api/catalogos/empresas", new { empresa.razon, empresa.ruc, empresa.direccion, empresa.regimen, inventado = 1 })).StatusCode);
 
         var r = await admin.PostAsJsonAsync("/api/catalogos/empresas", empresa);

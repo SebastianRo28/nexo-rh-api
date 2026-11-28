@@ -75,7 +75,7 @@ public class AprovisionadorTenants(IServiceScopeFactory scopes, IConfiguration c
             var sp = scope.ServiceProvider;
             sp.GetRequiredService<ContextoTenant>().Usar(t);
             var db = sp.GetRequiredService<NexoDbContext>();
-            await SemillaBase.CargarAsync(db, sp.GetRequiredService<Genericos>());
+            await SemillaBase.CargarAsync(db, sp.GetRequiredService<Genericos>(), t);
             if (datosDemo)
             {
                 await Semilla.CargarAsync(db, config, log);
@@ -85,6 +85,7 @@ public class AprovisionadorTenants(IServiceScopeFactory scopes, IConfiguration c
                 await SemillaAdministracion.CargarAsync(db);
                 await SemillaReporteria.CargarAsync(db);
                 await SemillaModulos.CargarAsync(db);
+                await SemillaAsistencia.CompletarDemoAsync(db);
             }
             else await SemillaBase.CargarProduccionAsync(db, config, sp.GetRequiredService<RelojAsistencia>(), log, adminDesdeConfig);
         }

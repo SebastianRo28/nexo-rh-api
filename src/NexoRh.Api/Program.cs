@@ -163,6 +163,7 @@ builder.Services.AddSingleton<TrabajosAprovisionamiento>();
 builder.Services.AddScoped<ConsultasPlataforma>();
 builder.Services.AddScoped<CicloVidaTenants>();
 builder.Services.Configure<OpcionesIzipay>(builder.Configuration.GetSection("Izipay"));
+builder.Services.Configure<NexoRh.Api.Controllers.OpcionesAsistente>(builder.Configuration.GetSection("Asistente"));
 builder.Services.AddHttpClient<PasarelaIzipay>(c => c.Timeout = TimeSpan.FromSeconds(40));
 builder.Services.AddSingleton<TokensTarjeta>();
 builder.Services.AddScoped<CobrosFacturas>();
@@ -176,6 +177,9 @@ builder.Services.AddRateLimiter(o =>
     o.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
     o.AddPolicy("login", ctx => RateLimitPartition.GetFixedWindowLimiter(ctx.Connection.RemoteIpAddress?.ToString() ?? "?",
         _ => new FixedWindowRateLimiterOptions { PermitLimit = loginPorMinuto, Window = TimeSpan.FromMinutes(1) }));
+    // Nexo AI: 15 preguntas por minuto por usuario (cada una tiene costo).
+    o.AddPolicy("asistente", ctx => RateLimitPartition.GetFixedWindowLimiter(ctx.User.FindFirst("sub")?.Value ?? ctx.Connection.RemoteIpAddress?.ToString() ?? "?",
+        _ => new FixedWindowRateLimiterOptions { PermitLimit = 15, Window = TimeSpan.FromMinutes(1) }));
 });
 
 // --- Web -----------------------------------------------------------------------------------------------------------

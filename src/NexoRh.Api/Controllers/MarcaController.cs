@@ -59,7 +59,7 @@ public class MarcaController(CatalogoDbContext catalogo, Marcas marcas, Contexto
         return await GuardarVersion(ReglasMarca.Leer(fila.Json), $"Restaurada desde la versión {version}");
     }
 
-    /// <summary>Sube un logo o la imagen del login (PNG, JPG, WebP o SVG de hasta 2 MB; los SVG se limpian de scripts).</summary>
+    /// <summary>Sube un logo, la imagen del login o la de una portada del portal (PNG, JPG, WebP o SVG de hasta 2 MB; los SVG se limpian de scripts).</summary>
     [HttpPost("archivos")]
     [RequestSizeLimit(ArchivosMarca.MaximoBytes + 64 * 1024)]
     public async Task<ActionResult<ArchivoSubido>> Subir([FromForm] IFormFile? archivo, [FromForm] string? tipo)
@@ -72,7 +72,7 @@ public class MarcaController(CatalogoDbContext catalogo, Marcas marcas, Contexto
         var datos = ms.ToArray();
         var ct = ArchivosMarca.Detectar(datos);
         if (ct is null) return Problem("Usa una imagen PNG, JPG, WebP o SVG.", statusCode: 400);
-        if (tipo == "login" && ct == "image/svg+xml") return Problem("La imagen del login debe ser PNG, JPG o WebP.", statusCode: 400);
+        if (tipo is "login" or "portada" && ct == "image/svg+xml") return Problem($"La imagen {(tipo == "login" ? "del login" : "de la portada")} debe ser PNG, JPG o WebP.", statusCode: 400);
         if (ct == "image/svg+xml")
         {
             datos = ArchivosMarca.LimpiarSvg(datos)!;

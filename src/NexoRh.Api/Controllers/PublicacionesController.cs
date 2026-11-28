@@ -25,9 +25,18 @@ public class PublicacionesController(NexoDbContext db, Auditoria auditoria, Relo
 {
     private string Estado(Publicacion p) => p.PublicarEl is null ? "Borrador" : p.PublicarEl > reloj.Hoy ? "Programado" : "Publicado";
 
-    private PublicacionDto Dto(Publicacion p, int colaboradores) => new(p.Id, p.Titulo, p.Texto, p.Autor, p.Fijada, Estado(p),
-        p.PublicarEl is { } f ? Fechas.Texto(f) : "—", p.Expira is { } e ? Fechas.Texto(e) : "—", p.Vistas, p.Comentarios, p.Reacciones,
+    private PublicacionDto Dto(Publicacion p, int colaboradores, Dictionary<int, (int comentarios, int reacciones)> conteos) => new(p.Id, p.Titulo, p.Texto, p.Autor, p.Fijada, Estado(p),
+        p.PublicarEl is { } f ? Fechas.Texto(f) : "—", p.Expira is { } e ? Fechas.Texto(e) : "—", p.Vistas,
+        conteos.GetValueOrDefault(p.Id).comentarios, conteos.GetValueOrDefault(p.Id).reacciones,
         Estado(p) == "Publicado" && colaboradores > 0 ? (int)Math.Min(100, Math.Round(100.0 * p.Vistas / colaboradores)) : null);
+
+    /// <summary>Comentarios y reacciones de cada publicación (muro de Mi Portal).</summary>
+    private async Task<Dictionary<int, (int comentarios, int reacciones)>> ConteosAsync()
+    {
+        var c = await db.ComentariosMuro.Where(x => x.Elemento == ElementosMuro.Publicacion).GroupBy(x => x.ElementoId).Select(g => new { g.Key, N = g.Count() }).ToDictionaryAsync(x => x.Key, x => x.N);
+        var r = await db.ReaccionesMuro.Where(x => x.Elemento == ElementosMuro.Publicacion).GroupBy(x => x.ElementoId).Select(g => new { g.Key, N = g.Count() }).ToDictionaryAsync(x => x.Key, x => x.N);
+        return c.Keys.Union(r.Keys).ToDictionary(k => k, k => (c.GetValueOrDefault(k), r.GetValueOrDefault(k)));
+    }
 
     /// <summary>Muro: publicadas y vigentes, primero las fijadas.</summary>
     [HttpGet("muro")]
@@ -35,8 +44,9 @@ public class PublicacionesController(NexoDbContext db, Auditoria auditoria, Relo
     {
         var hoy = reloj.Hoy;
         var n = await db.Colaboradores.CountAsync();
+        var conteos = await ConteosAsync();
         return (await db.Publicaciones.AsNoTracking().Where(p => p.PublicarEl != null && p.PublicarEl <= hoy && (p.Expira == null || p.Expira >= hoy))
-            .OrderByDescending(p => p.Fijada).ThenByDescending(p => p.PublicarEl).ToListAsync()).Select(p => Dto(p, n)).ToList();
+            .OrderByDescending(p => p.Fijada).ThenByDescending(p => p.PublicarEl).ToListAsync()).Select(p => Dto(p, n, conteos)).ToList();
     }
 
     [HttpGet]
@@ -44,8 +54,9 @@ public class PublicacionesController(NexoDbContext db, Auditoria auditoria, Relo
     public async Task<List<PublicacionDto>> Listar()
     {
         var n = await db.Colaboradores.CountAsync();
+        var conteos = await ConteosAsync();
         return (await db.Publicaciones.AsNoTracking().OrderByDescending(p => p.Fijada).ThenByDescending(p => p.PublicarEl ?? DateOnly.MaxValue).ToListAsync())
-            .Select(p => Dto(p, n)).ToList();
+            .Select(p => Dto(p, n, conteos)).ToList();
     }
 
     [HttpPost]
@@ -90,7 +101,7 @@ public class PublicacionesController(NexoDbContext db, Auditoria auditoria, Relo
         if (nueva) auditoria.Registrar($"Publicación #{p.Id}", "Crear", actual: $"{p.Titulo} · {Estado(p)}");
         else auditoria.Registrar($"Publicación #{p.Id}", "Modificar", propiedad: "contenido", anterior: antes!, actual: $"{p.Titulo} · {Estado(p)}");
         await db.SaveChangesAsync();
-        return Dto(p, await db.Colaboradores.CountAsync());
+        return Dto(p, await db.Colaboradores.CountAsync(), await ConteosAsync());
     }
 
     [HttpDelete("{id:int}")]
@@ -100,6 +111,9 @@ public class PublicacionesController(NexoDbContext db, Auditoria auditoria, Relo
         var p = await db.Publicaciones.Buscar(id);
         if (p is null) return NotFound();
         db.Publicaciones.Remove(p);
+        // Sus reacciones y comentarios dejan de tener sentido.
+        db.ReaccionesMuro.RemoveRange(db.ReaccionesMuro.Where(x => x.Elemento == ElementosMuro.Publicacion && x.ElementoId == id));
+        db.ComentariosMuro.RemoveRange(db.ComentariosMuro.Where(x => x.Elemento == ElementosMuro.Publicacion && x.ElementoId == id));
         auditoria.Registrar($"Publicación #{p.Id}", "Eliminar", anterior: p.Titulo);
         await db.SaveChangesAsync();
         return NoContent();

@@ -135,6 +135,9 @@ public class ProduccionTests(ApiFixture api)
                 Assert.Equal(3, await db.Perfiles.CountAsync());
                 Assert.True(await db.TiposItem.AnyAsync() && await db.ParametrosRem.AnyAsync() && await db.Feriados.AnyAsync() && await db.FilasCatalogo.AnyAsync());
                 Assert.Equal([202611], await db.Periodos.Select(p => p.Id).ToListAsync());
+                // Una sola razón social: la de la empresa, no las de ejemplo.
+                var empresa = Assert.Single(await db.FilasCatalogo.Where(f => f.Clave == "empresas").ToListAsync());
+                Assert.Contains("Empresa Nueva S.A.C.", empresa.Datos);
                 Assert.False(await db.Reportes.AnyAsync() || await db.Activos.AnyAsync() || await db.Encuestas.AnyAsync());
             }
             finally

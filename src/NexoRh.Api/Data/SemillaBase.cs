@@ -13,7 +13,7 @@ namespace NexoRh.Api.Data;
 /// </summary>
 public static class SemillaBase
 {
-    public static async Task CargarAsync(NexoDbContext db, Genericos genericos)
+    public static async Task CargarAsync(NexoDbContext db, Genericos genericos, Catalogo.Tenant? tenant = null)
     {
         if (!await db.FamiliasCargo.AnyAsync())
             db.FamiliasCargo.AddRange(new[] { "Intermedio", "Jefatura", "Senior", "Gerencia", "Junior" }.Select((n, i) => new FamiliaCargo { Id = i, Nombre = n }));
@@ -36,7 +36,7 @@ public static class SemillaBase
         if (!await db.Feriados.AnyAsync()) db.Feriados.AddRange(SemillaAsistencia.Feriados());
         await db.SaveChangesAsync();
         await SemillaRemuneraciones.CargarBaseAsync(db);
-        await SemillaCatalogos.CargarAsync(db, genericos);
+        await SemillaCatalogos.CargarAsync(db, genericos, tenant);
     }
 
     /// <summary>

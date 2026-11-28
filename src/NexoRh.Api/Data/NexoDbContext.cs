@@ -35,6 +35,8 @@ public partial class NexoDbContext(DbContextOptions<NexoDbContext> options, Cont
     public DbSet<Denuncia> Denuncias => Set<Denuncia>();
     public DbSet<MensajeDenuncia> MensajesDenuncia => Set<MensajeDenuncia>();
     public DbSet<Publicacion> Publicaciones => Set<Publicacion>();
+    public DbSet<ReaccionMuro> ReaccionesMuro => Set<ReaccionMuro>();
+    public DbSet<ComentarioMuro> ComentariosMuro => Set<ComentarioMuro>();
     public DbSet<CumplimientoSst> CumplimientosSst => Set<CumplimientoSst>();
     public DbSet<RequisitoSst> RequisitosSst => Set<RequisitoSst>();
     public DbSet<AsignacionSst> AsignacionesSst => Set<AsignacionSst>();
@@ -69,6 +71,7 @@ public partial class NexoDbContext(DbContextOptions<NexoDbContext> options, Cont
     public DbSet<AsignacionTurno> AsignacionesTurno => Set<AsignacionTurno>();
     public DbSet<CambioTurno> CambiosTurno => Set<CambioTurno>();
     public DbSet<Marca> Marcas => Set<Marca>();
+    public DbSet<FotoMarca> FotosMarca => Set<FotoMarca>();
     public DbSet<MarcaFallida> MarcasFallidas => Set<MarcaFallida>();
     public DbSet<NotaSupervisor> NotasSupervisor => Set<NotaSupervisor>();
     public DbSet<Vacacion> Vacaciones => Set<Vacacion>();
@@ -412,6 +415,21 @@ public partial class NexoDbContext(DbContextOptions<NexoDbContext> options, Cont
             e.Property(x => x.Texto).HasMaxLength(4000);
             e.Property(x => x.Autor).HasMaxLength(80);
         });
+        b.Entity<ReaccionMuro>(e =>
+        {
+            e.Property(x => x.Elemento).HasMaxLength(3);
+            e.Property(x => x.Tipo).HasMaxLength(10);
+            e.HasIndex(x => new { x.Elemento, x.ElementoId });
+            // Una reacción por usuario y elemento.
+            e.HasIndex(x => new { x.Elemento, x.ElementoId, x.UsuarioId }).IsUnique().HasFilter("[UsuarioId] IS NOT NULL");
+        });
+        b.Entity<ComentarioMuro>(e =>
+        {
+            e.Property(x => x.Elemento).HasMaxLength(3);
+            e.Property(x => x.Autor).HasMaxLength(170);
+            e.Property(x => x.Texto).HasMaxLength(500);
+            e.HasIndex(x => new { x.Elemento, x.ElementoId });
+        });
     }
 
     private static void WorkflowModelo(ModelBuilder b)
@@ -580,6 +598,11 @@ public partial class NexoDbContext(DbContextOptions<NexoDbContext> options, Cont
             e.HasIndex(x => x.Fecha);
             e.HasOne<Colaborador>().WithMany().HasForeignKey(x => x.ColaboradorId).OnDelete(DeleteBehavior.Cascade);
             e.HasOne<Recinto>().WithMany().HasForeignKey(x => x.RecintoId).OnDelete(DeleteBehavior.Restrict);
+        });
+        b.Entity<FotoMarca>(e =>
+        {
+            e.HasKey(x => x.MarcaId);
+            e.HasOne<Marca>().WithOne().HasForeignKey<FotoMarca>(x => x.MarcaId).OnDelete(DeleteBehavior.Cascade);
         });
         b.Entity<MarcaFallida>(e =>
         {

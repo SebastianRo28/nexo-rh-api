@@ -15,7 +15,7 @@ public record AsignacionTurnoDto(int Id, int ColaboradorId, int TurnoId, string 
 /// <summary>Valor: id de turno (número) o código DES / LIB / COMP.</summary>
 public record CambioTurnoDto(int ColaboradorId, string Fecha, object Valor, string CreadoPor);
 public record MarcaDto(int Id, int ColaboradorId, int RecintoId, string Fecha, string Hora, string Tipo, string Metodo, double Lat, double Lng,
-    bool DentroRadio, bool Foto, string Observacion, string? CreadoPor, string? Motivo);
+    bool DentroRadio, bool Foto, string Observacion, string? CreadoPor, string? Motivo, int? Distancia, int? Precision);
 public record MarcaFallidaDto(int Id, int ColaboradorId, int RecintoId, string Fecha, string Hora, string Tipo, string Metodo, string Motivo, int? Distancia);
 public record NotaDto(int Id, int ColaboradorId, string Fecha, string Texto, string Autor);
 public record VacacionDto(int Id, int ColaboradorId, string Desde, string Hasta, int Dias, string Origen, string Observacion);
@@ -38,7 +38,8 @@ public record AsistenciaDatos(
     Dictionary<string, Dictionary<string, object>> Configuracion);
 
 // --- Entradas ---------------------------------------------------------------------------------------------------------
-public record Marcar(string? Tipo, string? Metodo, int? RecintoId);
+/// <summary>Foto: JPEG en base64 (admite el prefijo data:image/jpeg;base64,). Lat, Lng y Precision: GPS del dispositivo.</summary>
+public record Marcar(string? Tipo, string? Metodo, int? RecintoId, double? Lat = null, double? Lng = null, double? Precision = null, string? Foto = null);
 public record FallidaNueva(string? Tipo, string? Metodo, int? RecintoId, string? Hora, string? Motivo, int? Distancia);
 public record MarcaManual(int ColaboradorId, string? Fecha, string? Hora, string? Tipo, string? Motivo);
 public record NotaNueva(int ColaboradorId, string? Texto);

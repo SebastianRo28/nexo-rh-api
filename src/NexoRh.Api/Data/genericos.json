@@ -2030,6 +2030,26 @@
           "dependeDe": null
         },
         {
+          "key": "ubicacionWeb",
+          "label": "Pedir la ubicación del dispositivo en las marcas desde el portal web",
+          "tipo": "switch",
+          "opciones": null,
+          "min": null,
+          "max": null,
+          "obligatorio": false,
+          "dependeDe": null
+        },
+        {
+          "key": "fotoWeb",
+          "label": "Pedir una selfie en las marcas desde el portal web",
+          "tipo": "switch",
+          "opciones": null,
+          "min": null,
+          "max": null,
+          "obligatorio": false,
+          "dependeDe": null
+        },
+        {
           "key": "exigirFoto",
           "label": "Exigir foto en las marcas desde la app o QR",
           "tipo": "switch",
@@ -2065,6 +2085,8 @@
         "app": true,
         "qr": true,
         "foto": false,
+        "ubicacionWeb": true,
+        "fotoWeb": false,
         "exigirFoto": true,
         "exigirRadio": true,
         "radioDefecto": 150

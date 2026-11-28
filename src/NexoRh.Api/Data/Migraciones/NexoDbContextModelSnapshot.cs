@@ -846,6 +846,54 @@ namespace NexoRh.Api.Data.Migraciones
                     b.ToTable("Colaboradores");
                 });
 
+            modelBuilder.Entity("NexoRh.Api.Domain.ComentarioMuro", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Autor")
+                        .IsRequired()
+                        .HasMaxLength(170)
+                        .HasColumnType("nvarchar(170)");
+
+                    b.Property<int?>("ColaboradorId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Elemento")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("nvarchar(3)");
+
+                    b.Property<int>("ElementoId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("Fecha")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("TenantId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Texto")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int?>("UsuarioId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TenantId");
+
+                    b.HasIndex("Elemento", "ElementoId");
+
+                    b.ToTable("ComentariosMuro");
+                });
+
             modelBuilder.Entity("NexoRh.Api.Domain.ComisionAfp", b =>
                 {
                     b.Property<Guid>("TenantId")
@@ -1368,6 +1416,30 @@ namespace NexoRh.Api.Data.Migraciones
                     b.ToTable("FilasCatalogo");
                 });
 
+            modelBuilder.Entity("NexoRh.Api.Domain.FotoMarca", b =>
+                {
+                    b.Property<Guid>("TenantId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("MarcaId")
+                        .HasColumnType("int");
+
+                    b.Property<byte[]>("Contenido")
+                        .IsRequired()
+                        .HasColumnType("varbinary(max)");
+
+                    b.HasKey("TenantId", "MarcaId");
+
+                    b.HasIndex("MarcaId")
+                        .IsUnique();
+
+                    b.HasIndex("TenantId", "MarcaId")
+                        .IsUnique();
+
+                    b.ToTable("FotosMarca");
+                });
+
             modelBuilder.Entity("NexoRh.Api.Domain.LicenciaMedica", b =>
                 {
                     b.Property<int>("Id")
@@ -1445,6 +1517,9 @@ namespace NexoRh.Api.Data.Migraciones
                     b.Property<bool>("DentroRadio")
                         .HasColumnType("bit");
 
+                    b.Property<int?>("Distancia")
+                        .HasColumnType("int");
+
                     b.Property<DateOnly>("Fecha")
                         .HasColumnType("date");
 
@@ -1475,6 +1550,9 @@ namespace NexoRh.Api.Data.Migraciones
                         .IsRequired()
                         .HasMaxLength(300)
                         .HasColumnType("nvarchar(300)");
+
+                    b.Property<int?>("Precision")
+                        .HasColumnType("int");
 
                     b.Property<int>("RecintoId")
                         .HasColumnType("int");
@@ -2096,9 +2174,6 @@ namespace NexoRh.Api.Data.Migraciones
                         .HasMaxLength(80)
                         .HasColumnType("nvarchar(80)");
 
-                    b.Property<int>("Comentarios")
-                        .HasColumnType("int");
-
                     b.Property<DateOnly?>("Expira")
                         .HasColumnType("date");
 
@@ -2107,9 +2182,6 @@ namespace NexoRh.Api.Data.Migraciones
 
                     b.Property<DateOnly?>("PublicarEl")
                         .HasColumnType("date");
-
-                    b.Property<int>("Reacciones")
-                        .HasColumnType("int");
 
                     b.Property<Guid>("TenantId")
                         .ValueGeneratedOnAdd()
@@ -2133,6 +2205,51 @@ namespace NexoRh.Api.Data.Migraciones
                     b.HasIndex("TenantId");
 
                     b.ToTable("Publicaciones");
+                });
+
+            modelBuilder.Entity("NexoRh.Api.Domain.ReaccionMuro", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("ColaboradorId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Elemento")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("nvarchar(3)");
+
+                    b.Property<int>("ElementoId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("Fecha")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("TenantId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Tipo")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<int?>("UsuarioId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Elemento", "ElementoId");
+
+                    b.HasIndex("TenantId", "Elemento", "ElementoId", "UsuarioId")
+                        .IsUnique()
+                        .HasFilter("[UsuarioId] IS NOT NULL");
+
+                    b.ToTable("ReaccionesMuro");
                 });
 
             modelBuilder.Entity("NexoRh.Api.Domain.RecargoDomingo", b =>
@@ -3257,6 +3374,15 @@ namespace NexoRh.Api.Data.Migraciones
                     b.HasOne("NexoRh.Api.Domain.AsignacionSst", null)
                         .WithMany()
                         .HasForeignKey("AsignacionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("NexoRh.Api.Domain.FotoMarca", b =>
+                {
+                    b.HasOne("NexoRh.Api.Domain.Marca", null)
+                        .WithOne()
+                        .HasForeignKey("NexoRh.Api.Domain.FotoMarca", "MarcaId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });

@@ -105,7 +105,7 @@ public static partial class ReglasMarca
     public const string FuentePorDefecto = "Nunito Sans";
     public static readonly string[] Fuentes = ["Nunito Sans", "Inter", "Source Sans 3", "Roboto", "Montserrat", "Open Sans", "Lato"];
     public static readonly string[] Radios = ["recto", "suave", "redondeado"];
-    public static readonly string[] TiposArchivo = ["horizontal", "horizontalClaro", "cuadrado", "login"];
+    public static readonly string[] TiposArchivo = ["horizontal", "horizontalClaro", "cuadrado", "login", "portada"];
     public const double ContrasteMinimo = 4.5;
 
     private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web);

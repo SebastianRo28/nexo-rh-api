@@ -39,7 +39,7 @@ public class ConfiguracionTests(ApiFixture api)
         (await admin.PutAsJsonAsync("/api/configuracion/ca-metodos", new { web = false })).EnsureSuccessStatusCode();
         try
         {
-            var r = await c.PostAsJsonAsync("/api/asistencia/marcar", new { tipo = "Entrada", metodo = "Web" });
+            var r = await c.PostAsJsonAsync("/api/asistencia/marcar", new { tipo = "Entrada", metodo = "Web", lat = -12.0912, lng = -77.0225 });
             Assert.Equal(HttpStatusCode.BadRequest, r.StatusCode);
             var datos = await c.GetFromJsonAsync<JsonElement>("/api/asistencia");
             Assert.Contains(datos.GetProperty("fallidas").EnumerateArray(), f => f.GetProperty("motivo").GetString() == "Método no permitido" && f.GetProperty("fecha").GetString() == "16/03/2026");

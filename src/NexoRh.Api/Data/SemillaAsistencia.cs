@@ -1,3 +1,4 @@
+using NexoRh.Api.Services;
 using System.Globalization;
 using Microsoft.EntityFrameworkCore;
 using NexoRh.Api.Domain;
@@ -17,6 +18,40 @@ public static class SemillaAsistencia
     public static readonly DateOnly InicioMarcas = F("01/02/2026");
 
     private const string Lucia = "Lucía Cáceres";
+
+    /// <summary>
+    /// Ubicación del navegador de una marca web de ejemplo: dentro del radio del recinto, con un desplazamiento que sale de un
+    /// hash (no del generador aleatorio, para no alterar el resto de los datos de ejemplo).
+    /// </summary>
+    public static void UbicacionWeb(Marca m, Recinto rc)
+    {
+        var h = unchecked((uint)(m.ColaboradorId * 73_856_093 ^ m.Fecha.DayNumber * 19_349_663 ^ (m.Tipo == "Entrada" ? 83_492_791 : 41_234_567)));
+        m.Lat = rc.Lat + ((h % 1000) / 1000.0 - 0.5) * 2 * rc.Radio * 0.6 / 111_000;
+        m.Lng = rc.Lng + (((h / 1000) % 1000) / 1000.0 - 0.5) * 2 * rc.Radio * 0.6 / 108_000;
+        m.Distancia = (int)Math.Round(Geo.Metros(rc.Lat, rc.Lng, m.Lat, m.Lng));
+        m.Precision = 6 + (int)((h / 1_000_000) % 20);
+        m.DentroRadio = m.Distancia <= rc.Radio;
+        if (string.IsNullOrEmpty(m.Observacion)) m.Observacion = "Desde Mi Portal";
+    }
+
+    /// <summary>
+    /// Completa datos de ejemplo creados antes de que existieran (empresas demo ya sembradas): ubicación de las marcas web y
+    /// cuenta para el abono. Solo toca lo que falta, así que puede correr en cada arranque.
+    /// </summary>
+    public static async Task CompletarDemoAsync(NexoDbContext db)
+    {
+        var recintos = await db.Recintos.ToDictionaryAsync(r => r.Id);
+        foreach (var m in await db.Marcas.Where(m => m.Metodo == "Web" && m.Distancia == null).ToListAsync())
+            if (recintos.TryGetValue(m.RecintoId, out var rc)) UbicacionWeb(m, rc);
+        // La practicante recién ingresada (12) queda sin cuenta, como pasa en la realidad.
+        string[] bancos = ["BCP", "Interbank", "BBVA", "Scotiabank"];
+        foreach (var c in await db.Colaboradores.Where(c => c.Banco == null && c.Id != 12).ToListAsync())
+        {
+            c.Banco = $"{bancos[c.Id % bancos.Length]} · Cuenta de ahorros ****{(c.Id * 7919 + 1234) % 10000:D4}";
+            c.FormaPago ??= "Transferencia";
+        }
+        await db.SaveChangesAsync();
+    }
 
     public static async Task CargarAsync(NexoDbContext db)
     {
@@ -295,9 +330,17 @@ public static class SemillaAsistencia
                     var conFoto = metodo != "Web" && !sinFoto.Contains(K(c.Id, f));
                     Marca Nueva(string tipo, int min)
                     {
-                        var (lat, lng) = metodo == "Web" ? (rc.Lat, rc.Lng)
-                            : (rc.Lat + (r.NextDouble() - 0.5) * 2 * rc.Radio * 0.7 / 111_000, rc.Lng + (r.NextDouble() - 0.5) * 2 * rc.Radio * 0.7 / 108_000);
-                        return new Marca { ColaboradorId = c.Id, RecintoId = rc.Id, Fecha = f, Hora = Hora(min), Tipo = tipo, Metodo = metodo, Lat = lat, Lng = lng, Foto = conFoto };
+                        // Las marcas web también traen la ubicación del navegador. Su desplazamiento sale de un hash (no del
+                        // generador aleatorio) para no alterar el resto de los datos de ejemplo.
+                        var m = new Marca { ColaboradorId = c.Id, RecintoId = rc.Id, Fecha = f, Hora = Hora(min), Tipo = tipo, Metodo = metodo, Foto = conFoto };
+                        if (metodo == "Web") UbicacionWeb(m, rc);
+                        else
+                        {
+                            (m.Lat, m.Lng) = (rc.Lat + (r.NextDouble() - 0.5) * 2 * rc.Radio * 0.7 / 111_000, rc.Lng + (r.NextDouble() - 0.5) * 2 * rc.Radio * 0.7 / 108_000);
+                            m.Distancia = (int)Math.Round(Geo.Metros(rc.Lat, rc.Lng, m.Lat, m.Lng));
+                            m.DentroRadio = m.Distancia <= rc.Radio;
+                        }
+                        return m;
                     }
                     if (f == Corte) { if (ent <= ahora) Marcas.Add(Nueva("Entrada", ent)); continue; }
                     Marcas.Add(Nueva("Entrada", ent));

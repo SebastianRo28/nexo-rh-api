@@ -20,7 +20,7 @@ public static class Mapeo
     public static CambioTurnoDto Cambio(CambioTurno c) => new(c.ColaboradorId, T(c.Fecha), c.TurnoId is { } t ? t : c.Codigo ?? "DES", c.CreadoPor);
 
     public static MarcaDto Marca(Marca m) => new(m.Id, m.ColaboradorId, m.RecintoId, T(m.Fecha), m.Hora, m.Tipo, m.Metodo, m.Lat, m.Lng, m.DentroRadio, m.Foto,
-        m.Observacion, m.CreadoPor, m.Motivo);
+        m.Observacion, m.CreadoPor, m.Motivo, m.Distancia, m.Precision);
 
     public static MarcaFallidaDto Fallida(MarcaFallida f) => new(f.Id, f.ColaboradorId, f.RecintoId, T(f.Fecha), f.Hora, f.Tipo, f.Metodo, f.Motivo, f.Distancia);
     public static NotaDto Nota(NotaSupervisor n) => new(n.Id, n.ColaboradorId, T(n.Fecha), n.Texto, n.Autor);

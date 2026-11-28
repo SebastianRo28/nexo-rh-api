@@ -94,10 +94,21 @@ public class Marca : IEntidadTenant
     public double Lng { get; set; }
     public bool DentroRadio { get; set; } = true;
     public bool Foto { get; set; }
+    /// <summary>Metros entre el dispositivo y el recinto, y precisión del GPS (marcas con ubicación real).</summary>
+    public int? Distancia { get; set; }
+    public int? Precision { get; set; }
     public string Observacion { get; set; } = "";
     public string? CreadoPor { get; set; }
     public string? Motivo { get; set; }
     public DateTime RegistradaEn { get; set; } = DateTime.UtcNow;
+}
+
+/// <summary>Selfie de una marca (JPEG), separada para no cargarla al listar.</summary>
+public class FotoMarca : IEntidadTenant
+{
+    public Guid TenantId { get; set; }
+    public int MarcaId { get; set; }
+    public byte[] Contenido { get; set; } = [];
 }
 
 public class MarcaFallida : IEntidadTenant

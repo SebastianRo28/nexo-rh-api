@@ -105,7 +105,48 @@ public class Publicacion : IEntidadTenant
     public DateOnly? PublicarEl { get; set; }
     public DateOnly? Expira { get; set; }
     public int Vistas { get; set; }
-    public int Comentarios { get; set; }
-    public int Reacciones { get; set; }
     public DateTime ActualizadaEn { get; set; } = DateTime.UtcNow;
+}
+
+/// <summary>Elementos del muro de Mi Portal que admiten reacciones y comentarios.</summary>
+public static class ElementosMuro
+{
+    public const string Publicacion = "pub";
+    public const string Reconocimiento = "rec";
+    public static readonly string[] Todos = [Publicacion, Reconocimiento];
+    /// <summary>Me gusta, Me encanta, Me divierte.</summary>
+    public static readonly string[] Reacciones = ["like", "love", "smile"];
+}
+
+/// <summary>
+/// Reacción de una persona a una publicación o un reconocimiento del muro: una por persona y elemento (se cambia o se quita).
+/// Las de usuarios llevan UsuarioId; las de los datos de ejemplo, solo el colaborador.
+/// </summary>
+public class ReaccionMuro : IEntidadTenant
+{
+    public Guid TenantId { get; set; }
+    public int Id { get; set; }
+    /// <summary>ElementosMuro.Publicacion o ElementosMuro.Reconocimiento.</summary>
+    public string Elemento { get; set; } = "";
+    public int ElementoId { get; set; }
+    public int? UsuarioId { get; set; }
+    public int? ColaboradorId { get; set; }
+    /// <summary>like, love o smile.</summary>
+    public string Tipo { get; set; } = "like";
+    public DateTime Fecha { get; set; } = DateTime.UtcNow;
+}
+
+/// <summary>Comentario en una publicación o un reconocimiento del muro. Lo borra su autor o un administrador.</summary>
+public class ComentarioMuro : IEntidadTenant
+{
+    public Guid TenantId { get; set; }
+    public int Id { get; set; }
+    public string Elemento { get; set; } = "";
+    public int ElementoId { get; set; }
+    public int? UsuarioId { get; set; }
+    public int? ColaboradorId { get; set; }
+    /// <summary>Nombre mostrado ("Nombres Apellidos").</summary>
+    public string Autor { get; set; } = "";
+    public string Texto { get; set; } = "";
+    public DateTime Fecha { get; set; } = DateTime.UtcNow;
 }

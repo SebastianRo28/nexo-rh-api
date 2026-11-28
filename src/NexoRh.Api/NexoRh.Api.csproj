@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Anthropic" Version="13.14.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.11" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.11">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -20,6 +21,7 @@
 
   <ItemGroup>
     <None Update="Data/genericos.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="Asistente/guia-nexo-rh.md" CopyToOutputDirectory="PreserveNewest" />
     <None Update="Data/demo-modulos.json" CopyToOutputDirectory="PreserveNewest" />
     <None Update="Catalogo/Datos/ubigeo-inei.csv" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
